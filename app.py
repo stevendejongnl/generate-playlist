@@ -4,13 +4,49 @@ import unicodedata
 from io import BytesIO
 
 import spotipy
+import uuid
 
-from flask import Flask, jsonify
+from flask import Flask, session, request, redirect, jsonify
+from flask_session import Session
 from spotipy.oauth2 import SpotifyOAuth
 from PIL import Image, ImageDraw, ImageFont
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(64)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = './.flask_session/'
+Session(app)
+
+caches_folder = './.spotify_caches/'
+if not os.path.exists(caches_folder):
+    os.makedirs(caches_folder)
+
+
+def session_cache_path():
+    return caches_folder + session.get('uuid')
+
+
+def authenticate(scopes):
+    if not session.get('uuid'):
+        session['uuid'] = str(uuid.uuid4())
+
+    auth_manager = spotipy.oauth2.SpotifyOAuth(scope=' '.join(scopes),
+                                               cache_path=session_cache_path(),
+                                               show_dialog=True)
+
+    if request.args.get("code"):
+        auth_manager.get_access_token(request.args.get("code"))
+        return redirect('/')
+
+    if not auth_manager.get_cached_token():
+        auth_url = auth_manager.get_authorize_url()
+        return {
+            ''
+        }
+
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    return spotify
 
 
 class Spotify:
@@ -27,7 +63,8 @@ class Spotify:
             'user-library-modify',
             'user-library-read'
         ]
-        self.spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(','.join(self.scopes)))
+
+        self.spotify = authenticate(self.scopes)
 
     def generate_cover_image(self, playlist_id):
         text = "🧨 Generated Power"
