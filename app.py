@@ -124,7 +124,7 @@ class Spotify:
 def index():
     spotify = Spotify()
 
-    if not spotify:
+    if spotify.spotify:
         return spotify.authenticate()
 
     return spotify.generated_power()
@@ -133,6 +133,9 @@ def index():
 @app.route('/image')
 def image():
     spotify = Spotify()
+
+    if spotify.spotify:
+        return spotify.authenticate()
 
     spotify.generate_cover_image(os.environ.get('GENERATED_POWER'))
 
