@@ -1,3 +1,4 @@
 .env
 .cache
 __pycache__
+.flask_session
