@@ -8,7 +8,6 @@ import uuid
 
 from flask import Flask, session, request, redirect, jsonify
 from flask_session import Session
-from spotipy.oauth2 import SpotifyOAuth
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -42,8 +41,6 @@ class Spotify:
             'user-library-read'
         ]
 
-        self.spotify = None
-
     def authenticate(self):
         if not session.get('uuid'):
             session['uuid'] = str(uuid.uuid4())
@@ -62,10 +59,8 @@ class Spotify:
 
         return spotipy.Spotify(auth_manager=auth_manager)
 
-    def generate_cover_image(self, playlist_id):
-        if not self.spotify:
-            self.spotify = self.authenticate()
-
+    @staticmethod
+    def generate_cover_image(spotify, playlist_id):
         text = "🧨 Generated Power"
         text = "Generated Power"
         fontsize = 120
@@ -81,32 +76,12 @@ class Spotify:
         buffer = BytesIO()
         img.save(buffer, format="JPEG")
 
-        return self.spotify.playlist_upload_cover_image(playlist_id, base64.b64encode(buffer.getvalue()))
+        return spotify.playlist_upload_cover_image(playlist_id, base64.b64encode(buffer.getvalue()))
 
-    def get_saved_tracks(self):
-        if not self.spotify:
-            self.spotify = self.authenticate()
-
-        return self.spotify.current_user_saved_tracks()
-
-    def get_playlists(self):
-        if not self.spotify:
-            self.spotify = self.authenticate()
-
-        return self.spotify.current_user_playlists()
-
-    def get_playlist(self, id):
-        if not self.spotify:
-            self.spotify = self.authenticate()
-
-        return self.spotify.playlist(id)
-
-    def generated_power(self):
-        if not self.spotify:
-            self.spotify = self.authenticate()
-
+    @staticmethod
+    def generated_power(spotify):
         playlist_id = os.environ.get('GENERATED_POWER')
-        saved_tracks = self.spotify.current_user_saved_tracks(limit=30)
+        saved_tracks = spotify.current_user_saved_tracks(limit=30)
         spotify_limit_max_tracks = 100
 
         playlists = [
@@ -122,15 +97,15 @@ class Spotify:
                 build_track_list.append(track.get('track').get('id'))
 
         for id in playlists:
-            for track in self.get_playlist(id).get('tracks').get('items')[:20]:
+            for track in spotify.playlist(id).get('tracks').get('items')[:20]:
                 if track.get('track').get('id') not in build_track_list:
                     build_track_list.append(track.get('track').get('id'))
 
-        self.spotify.playlist_replace_items(playlist_id, [])
+        spotify.playlist_replace_items(playlist_id, [])
         split_list = [build_track_list[x:x + spotify_limit_max_tracks]
                       for x in range(0, len(build_track_list), spotify_limit_max_tracks)]
         for part_list in split_list:
-            self.spotify.playlist_add_items(playlist_id, part_list)
+            spotify.playlist_add_items(playlist_id, part_list)
 
         return jsonify('OK')
 
@@ -139,14 +114,22 @@ class Spotify:
 def index():
     spotify = Spotify()
 
-    return spotify.generated_power()
+    authenticate = spotify.authenticate()
+
+    print(authenticate)
+
+    return spotify.generated_power(authenticate)
 
 
 @app.route('/image')
 def image():
     spotify = Spotify()
 
-    spotify.generate_cover_image(os.environ.get('GENERATED_POWER'))
+    authenticate = spotify.authenticate()
+
+    print(authenticate)
+
+    spotify.generate_cover_image(authenticate, os.environ.get('GENERATED_POWER'))
 
     return jsonify('OK')
 
