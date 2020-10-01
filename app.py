@@ -101,11 +101,18 @@ class Spotify:
                 if track.get('track').get('id') not in build_track_list:
                     build_track_list.append(track.get('track').get('id'))
 
-        spotify.playlist_replace_items(playlist_id, [])
+        try:
+            spotify.playlist_replace_items(playlist_id, [])
+        except ValueError:
+            return jsonify('Can\'t empty playlist: {}'.format(ValueError))
+
         split_list = [build_track_list[x:x + spotify_limit_max_tracks]
                       for x in range(0, len(build_track_list), spotify_limit_max_tracks)]
         for part_list in split_list:
-            spotify.playlist_add_items(playlist_id, part_list)
+            try:
+                spotify.playlist_add_items(playlist_id, part_list)
+            except ValueError:
+                return jsonify('Can\'t add track to playlist: {}'.format(ValueError))
 
         return jsonify('OK')
 
