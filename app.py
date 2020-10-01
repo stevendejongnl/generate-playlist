@@ -63,6 +63,9 @@ class Spotify:
         self.spotify = spotipy.Spotify(auth_manager=auth_manager)
 
     def generate_cover_image(self, playlist_id):
+        if not self.spotify:
+            return self.authenticate()
+
         text = "🧨 Generated Power"
         text = "Generated Power"
         fontsize = 120
@@ -81,15 +84,27 @@ class Spotify:
         return self.spotify.playlist_upload_cover_image(playlist_id, base64.b64encode(buffer.getvalue()))
 
     def get_saved_tracks(self):
+        if not self.spotify:
+            return self.authenticate()
+
         return self.spotify.current_user_saved_tracks()
 
     def get_playlists(self):
+        if not self.spotify:
+            return self.authenticate()
+
         return self.spotify.current_user_playlists()
 
     def get_playlist(self, id):
+        if not self.spotify:
+            return self.authenticate()
+
         return self.spotify.playlist(id)
 
     def generated_power(self):
+        if not self.spotify:
+            return self.authenticate()
+
         playlist_id = os.environ.get('GENERATED_POWER')
         saved_tracks = self.spotify.current_user_saved_tracks(limit=30)
         spotify_limit_max_tracks = 100
@@ -124,18 +139,12 @@ class Spotify:
 def index():
     spotify = Spotify()
 
-    if spotify.spotify:
-        return spotify.authenticate()
-
     return spotify.generated_power()
 
 
 @app.route('/image')
 def image():
     spotify = Spotify()
-
-    if spotify.spotify:
-        return spotify.authenticate()
 
     spotify.generate_cover_image(os.environ.get('GENERATED_POWER'))
 
