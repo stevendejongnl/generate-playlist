@@ -57,7 +57,7 @@ class Spotify:
         return self.spotify.playlist(id)
 
     def generated_power(self):
-        playlist_id = os.environ['GENERATED_POWER']
+        playlist_id = os.environ.get('GENERATED_POWER')
         saved_tracks = self.spotify.current_user_saved_tracks(limit=30)
         spotify_limit_max_tracks = 100
 
@@ -98,10 +98,10 @@ def index():
 def image():
     spotify = Spotify()
 
-    spotify.generate_cover_image(os.environ['GENERATED_POWER'])
+    spotify.generate_cover_image(os.environ.get('GENERATED_POWER'))
 
     return jsonify('OK')
 
 
 if __name__ == '__main__':
-    app.run(debug=os.environ['FLASK_DEBUG'])
+    app.run(debug=os.environ.get('FLASK_DEBUG'))
