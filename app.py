@@ -60,11 +60,11 @@ class Spotify:
             auth_url = auth_manager.get_authorize_url()
             return f'<h2><a href="{auth_url}" target=_blank>Sign in</a></h2>'
 
-        self.spotify = spotipy.Spotify(auth_manager=auth_manager)
+        return spotipy.Spotify(auth_manager=auth_manager)
 
     def generate_cover_image(self, playlist_id):
         if not self.spotify:
-            self.authenticate()
+            self.spotify = self.authenticate()
 
         text = "🧨 Generated Power"
         text = "Generated Power"
@@ -85,25 +85,25 @@ class Spotify:
 
     def get_saved_tracks(self):
         if not self.spotify:
-            self.authenticate()
+            self.spotify = self.authenticate()
 
         return self.spotify.current_user_saved_tracks()
 
     def get_playlists(self):
         if not self.spotify:
-            self.authenticate()
+            self.spotify = self.authenticate()
 
         return self.spotify.current_user_playlists()
 
     def get_playlist(self, id):
         if not self.spotify:
-            self.authenticate()
+            self.spotify = self.authenticate()
 
         return self.spotify.playlist(id)
 
     def generated_power(self):
         if not self.spotify:
-            self.authenticate()
+            self.spotify = self.authenticate()
 
         playlist_id = os.environ.get('GENERATED_POWER')
         saved_tracks = self.spotify.current_user_saved_tracks(limit=30)
