@@ -122,6 +122,11 @@ def index():
     spotify = Spotify().authenticate()
 
     try:
+        user = spotify.user()
+    except ValueError:
+        return "Not authenticated yet!"
+
+    try:
         return Spotify().generated_power(spotify)
     except ValueError:
         return "Oops! Try again..."
