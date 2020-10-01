@@ -64,7 +64,7 @@ class Spotify:
 
     def generate_cover_image(self, playlist_id):
         if not self.spotify:
-            return self.authenticate()
+            self.authenticate()
 
         text = "🧨 Generated Power"
         text = "Generated Power"
@@ -85,25 +85,25 @@ class Spotify:
 
     def get_saved_tracks(self):
         if not self.spotify:
-            return self.authenticate()
+            self.authenticate()
 
         return self.spotify.current_user_saved_tracks()
 
     def get_playlists(self):
         if not self.spotify:
-            return self.authenticate()
+            self.authenticate()
 
         return self.spotify.current_user_playlists()
 
     def get_playlist(self, id):
         if not self.spotify:
-            return self.authenticate()
+            self.authenticate()
 
         return self.spotify.playlist(id)
 
     def generated_power(self):
         if not self.spotify:
-            return self.authenticate()
+            self.authenticate()
 
         playlist_id = os.environ.get('GENERATED_POWER')
         saved_tracks = self.spotify.current_user_saved_tracks(limit=30)
@@ -117,14 +117,14 @@ class Spotify:
         ]
 
         build_track_list = []
-        for track in saved_tracks['items']:
-            if track['track']['id'] not in build_track_list:
-                build_track_list.append(track['track']['id'])
+        for track in saved_tracks.get('items'):
+            if track.get('track').get('id') not in build_track_list:
+                build_track_list.append(track.get('track').get('id'))
 
         for id in playlists:
-            for track in self.get_playlist(id)['tracks']['items'][:20]:
-                if track['track']['id'] not in build_track_list:
-                    build_track_list.append(track['track']['id'])
+            for track in self.get_playlist(id).get('tracks').get('items')[:20]:
+                if track.get('track').get('id') not in build_track_list:
+                    build_track_list.append(track.get('track').get('id'))
 
         self.spotify.playlist_replace_items(playlist_id, [])
         split_list = [build_track_list[x:x + spotify_limit_max_tracks]
