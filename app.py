@@ -91,9 +91,6 @@ class Spotify:
 
     def generated_power(self):
         playlist_id = os.environ.get('GENERATED_POWER')
-
-        return jsonify(self.spotify)
-
         saved_tracks = self.spotify.current_user_saved_tracks(limit=30)
         spotify_limit_max_tracks = 100
 
@@ -127,7 +124,8 @@ class Spotify:
 def index():
     spotify = Spotify()
 
-    return spotify.authenticate()
+    if not spotify:
+        return spotify.authenticate()
 
     return spotify.generated_power()
 
