@@ -1,6 +1,5 @@
 import base64
 import os
-import unicodedata
 from io import BytesIO
 
 import spotipy
@@ -9,6 +8,7 @@ import uuid
 from flask import Flask, session, request, redirect, jsonify
 from flask_session import Session
 from PIL import Image, ImageDraw, ImageFont
+from spotipy.oauth2 import SpotifyOAuth
 
 
 app = Flask(__name__)
@@ -23,7 +23,7 @@ if not os.path.exists(caches_folder):
 
 
 def session_cache_path():
-    return caches_folder + session.get('uuid')
+    return caches_folder + str(session.get('uuid'))
 
 
 class Spotify:
@@ -45,9 +45,9 @@ class Spotify:
         if not session.get('uuid'):
             session['uuid'] = str(uuid.uuid4())
 
-        auth_manager = spotipy.oauth2.SpotifyOAuth(scope=' '.join(self.scopes),
-                                                   cache_path=session_cache_path(),
-                                                   show_dialog=True)
+        auth_manager = SpotifyOAuth(scope=' '.join(self.scopes),
+                                    cache_path=session_cache_path(),
+                                    show_dialog=True)
 
         if request.args.get("code"):
             auth_manager.get_access_token(request.args.get("code"))
@@ -55,7 +55,7 @@ class Spotify:
 
         if not auth_manager.get_cached_token():
             auth_url = auth_manager.get_authorize_url()
-            return f'<h2><a href="{auth_url}" target=_blank>Sign in</a></h2>'
+            return '<h2><a href="{}" target=_blank>Sign in</a></h2>'.format(auth_url)
 
         return spotipy.Spotify(auth_manager=auth_manager)
 
@@ -112,26 +112,22 @@ class Spotify:
 
 @app.route('/')
 def index():
-    spotify = Spotify()
+    spotify = Spotify().authenticate()
 
-    authenticate = spotify.authenticate()
-
-    print(authenticate)
-
-    return spotify.generated_power(authenticate)
+    try:
+        return Spotify().generated_power(spotify)
+    except ValueError:
+        return "Oops! Try again..."
 
 
 @app.route('/image')
 def image():
-    spotify = Spotify()
+    spotify = Spotify().authenticate()
 
-    authenticate = spotify.authenticate()
-
-    print(authenticate)
-
-    spotify.generate_cover_image(authenticate, os.environ.get('GENERATED_POWER'))
-
-    return jsonify('OK')
+    try:
+        return Spotify().generate_cover_image(spotify, os.environ.get('GENERATED_POWER'))
+    except ValueError:
+        return "Oops! Try again..."
 
 
 @app.route('/sign_out')
@@ -147,4 +143,4 @@ def sign_out():
 
 
 if __name__ == '__main__':
-    app.run(debug=os.environ.get('FLASK_DEBUG'))
+    app.run()
