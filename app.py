@@ -27,28 +27,6 @@ def session_cache_path():
     return caches_folder + session.get('uuid')
 
 
-def authenticate(scopes):
-    if not session.get('uuid'):
-        session['uuid'] = str(uuid.uuid4())
-
-    auth_manager = spotipy.oauth2.SpotifyOAuth(scope=' '.join(scopes),
-                                               cache_path=session_cache_path(),
-                                               show_dialog=True)
-
-    if request.args.get("code"):
-        auth_manager.get_access_token(request.args.get("code"))
-        return redirect('/')
-
-    if not auth_manager.get_cached_token():
-        auth_url = auth_manager.get_authorize_url()
-        return {
-            ''
-        }
-
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    return spotify
-
-
 class Spotify:
     def __init__(self):
         self.scopes = [
@@ -64,7 +42,25 @@ class Spotify:
             'user-library-read'
         ]
 
-        self.spotify = authenticate(self.scopes)
+        self.spotify = None
+
+    def authenticate(self):
+        if not session.get('uuid'):
+            session['uuid'] = str(uuid.uuid4())
+
+        auth_manager = spotipy.oauth2.SpotifyOAuth(scope=' '.join(self.scopes),
+                                                   cache_path=session_cache_path(),
+                                                   show_dialog=True)
+
+        if request.args.get("code"):
+            auth_manager.get_access_token(request.args.get("code"))
+            return redirect('/')
+
+        if not auth_manager.get_cached_token():
+            auth_url = auth_manager.get_authorize_url()
+            return f'<h2><a href="{auth_url}" target=_blank>Sign in</a></h2>'
+
+        self.spotify = spotipy.Spotify(auth_manager=auth_manager)
 
     def generate_cover_image(self, playlist_id):
         text = "🧨 Generated Power"
@@ -95,6 +91,9 @@ class Spotify:
 
     def generated_power(self):
         playlist_id = os.environ.get('GENERATED_POWER')
+
+        return jsonify(self.spotify)
+
         saved_tracks = self.spotify.current_user_saved_tracks(limit=30)
         spotify_limit_max_tracks = 100
 
@@ -127,6 +126,8 @@ class Spotify:
 @app.route('/')
 def index():
     spotify = Spotify()
+
+    return spotify.authenticate()
 
     return spotify.generated_power()
 
