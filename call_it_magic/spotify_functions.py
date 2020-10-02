@@ -1,4 +1,6 @@
 import base64
+import json
+
 import spotipy
 import uuid
 
@@ -88,13 +90,15 @@ def build_playlist(playlist_id):
 
     build_track_list = []
     for track in saved_tracks.get('items'):
-        if track.get('track').get('id') not in build_track_list:
-            build_track_list.append(track.get('track').get('id'))
+        track_id = track.get('track').get('id')
+        if track_id not in build_track_list and not track_id in blacklist().get('tracks'):
+            build_track_list.append(track_id)
 
     for id in playlists:
         for track in session['spotify'].playlist(id).get('tracks').get('items')[:20]:
-            if track.get('track').get('id') not in build_track_list:
-                build_track_list.append(track.get('track').get('id'))
+            track_id = track.get('track').get('id')
+            if track_id not in build_track_list and not track_id in blacklist().get('tracks'):
+                build_track_list.append(track_id)
 
     try:
         session['spotify'].playlist_replace_items(playlist_id, [])
@@ -110,3 +114,8 @@ def build_playlist(playlist_id):
             return jsonify('Can\'t add track to playlist: {}'.format(ValueError))
 
     return redirect(url_for('index'))
+
+
+def blacklist():
+    with open('blacklist.json') as blacklist_file:
+        return json.load(blacklist_file)
