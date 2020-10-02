@@ -1,0 +1,11 @@
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+    <ul>
+    {% for url in url_list %}
+        <li>
+            <a href="{{ url.href }}">{{ url.text }}</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}

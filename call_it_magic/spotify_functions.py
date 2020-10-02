@@ -1,15 +1,19 @@
 import base64
 import json
+import queue
+import random
+import threading
+import time
+import uuid
+from io import BytesIO
 
 import spotipy
-import uuid
-
-from io import BytesIO
-from flask import session, request, redirect, url_for, jsonify
 from PIL import Image, ImageDraw, ImageFont
+from flask import session, request, redirect, url_for, render_template
 from spotipy.oauth2 import SpotifyOAuth
 
 from call_it_magic.cache import session_cache_path
+from call_it_magic.sftp import sftp_connection
 
 scopes = [
     # Images
@@ -91,19 +95,19 @@ def build_playlist(playlist_id):
     build_track_list = []
     for track in saved_tracks.get('items'):
         track_id = track.get('track').get('id')
-        if track_id not in build_track_list and not track_id in blacklist().get('tracks'):
+        if track_id not in build_track_list and track_id not in get_blacklist().get('tracks'):
             build_track_list.append(track_id)
 
-    for id in playlists:
-        for track in session['spotify'].playlist(id).get('tracks').get('items')[:20]:
+    for get_id in playlists:
+        for track in session['spotify'].playlist(get_id).get('tracks').get('items')[:20]:
             track_id = track.get('track').get('id')
-            if track_id not in build_track_list and not track_id in blacklist().get('tracks'):
+            if track_id not in build_track_list and track_id not in get_blacklist().get('tracks'):
                 build_track_list.append(track_id)
 
     try:
         session['spotify'].playlist_replace_items(playlist_id, [])
     except ValueError:
-        return jsonify('Can\'t empty playlist: {}'.format(ValueError))
+        return render_template('pages/error.html', message='Can\'t empty playlist: {}'.format(ValueError))
 
     split_list = [build_track_list[x:x + spotify_limit_max_tracks]
                   for x in range(0, len(build_track_list), spotify_limit_max_tracks)]
@@ -111,11 +115,33 @@ def build_playlist(playlist_id):
         try:
             session['spotify'].playlist_add_items(playlist_id, part_list)
         except ValueError:
-            return jsonify('Can\'t add track to playlist: {}'.format(ValueError))
+            return render_template('pages/error.html', message='Can\'t add track to playlist: {}'.format(ValueError))
 
     return redirect(url_for('index'))
 
 
-def blacklist():
+def get_blacklist():
+    sftp_connection('/heroku/spotify-likes-to-playlist', 'blacklist.json', 'get')
+
     with open('blacklist.json') as blacklist_file:
+        blacklist_file.seek(0, 0)
         return json.load(blacklist_file)
+
+
+def edit_blacklist():
+    if request.method == 'POST' and request.get_json(force=True):
+        new_data = request.get_json(force=True)
+
+        if new_data.get('tracks'):
+            with open('blacklist.json', 'r+') as blacklist_file:
+                blacklist_file.seek(0, 0)
+                json.dump(new_data, blacklist_file, indent=4)
+                blacklist_file.truncate()
+
+        return sftp_connection('/heroku/spotify-likes-to-playlist', 'blacklist.json', 'put')
+
+    return render_template('pages/actions_blacklist.html', data=get_blacklist())
+
+
+def select_blacklist():
+    return sftp_connection('/heroku/spotify-likes-to-playlist', 'blacklist.json', 'get')

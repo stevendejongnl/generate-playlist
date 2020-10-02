@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}{% endblock %}Playlist generator</title>
+    {% block head_styles %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/app.css') }}">
+</head>
+<body>
+<section class="content">
+    {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+</section>
+
+{% block body_scripts %}{% endblock %}
+</body>
+</html>

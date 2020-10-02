@@ -1,0 +1,55 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Blacklist editor{% endblock %}
+
+{% block content %}
+    <div id="jsoneditor" class="jsoneditor-container"></div>
+{% endblock %}
+
+{% block head_styles %}
+    <link href="{{ url_for('static', filename='vendor/jsoneditor/dist/jsoneditor.min.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body_scripts %}
+    <script src="{{ url_for('static', filename='vendor/jsoneditor/dist/jsoneditor.min.js') }}"></script>
+    <script>
+        let check_for_change = false
+        const container = document.getElementById("jsoneditor")
+        const options = {
+            mode: 'code',
+            onValidate: function (json) {
+                let errors = [];
+
+                if (json && !json['tracks']) {
+                  errors.push({
+                    path: ['tracks'],
+                    message: 'Required property "tracks" missing.'
+                  });
+                }
+
+                return errors;
+            },
+            onChangeText: function (jsonString) {
+                if (!check_for_change && editor.get()) {
+                    check_for_change = true
+
+                    fetch('{{ url_for('actions', action_type='blacklist') }}', {
+                        method: 'POST',
+                        body: jsonString,
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(() => {
+                        setTimeout(() => {
+                            check_for_change = false
+                        }, 500)
+                    });
+                }
+            }
+        }
+        const editor = new JSONEditor(container, options)
+
+        editor.set({{ data | tojson }})
+    </script>
+{% endblock %}
