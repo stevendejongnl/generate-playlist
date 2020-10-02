@@ -1,15 +1,10 @@
-import base64
 import os
-from io import BytesIO
 
-import spotipy
-import uuid
-
-from flask import Flask, session, request, redirect, jsonify
+from flask import session, Flask, redirect, jsonify, url_for
 from flask_session import Session
-from PIL import Image, ImageDraw, ImageFont
-from spotipy.oauth2 import SpotifyOAuth
 
+from call_it_magic import spotify_functions
+from call_it_magic.cache import session_cache_path
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
@@ -17,129 +12,66 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = './.flask_session/'
 Session(app)
 
-caches_folder = './.spotify_caches/'
-if not os.path.exists(caches_folder):
-    os.makedirs(caches_folder)
-
-
-def session_cache_path():
-    return caches_folder + str(session.get('uuid'))
-
-
-class Spotify:
-    def __init__(self):
-        self.scopes = [
-            # Images
-            'ugc-image-upload',
-            # Playlists
-            'playlist-read-collaborative',
-            'playlist-modify-public',
-            'playlist-read-private',
-            'playlist-modify-private',
-            # Library
-            'user-library-modify',
-            'user-library-read'
-        ]
-
-    def authenticate(self):
-        if not session.get('uuid'):
-            session['uuid'] = str(uuid.uuid4())
-
-        auth_manager = SpotifyOAuth(scope=' '.join(self.scopes),
-                                    cache_path=session_cache_path(),
-                                    show_dialog=True)
-
-        if request.args.get("code"):
-            auth_manager.get_access_token(request.args.get("code"))
-            return redirect('/')
-
-        if not auth_manager.get_cached_token():
-            auth_url = auth_manager.get_authorize_url()
-            return '<h2><a href="{}" target=_blank>Sign in</a></h2>'.format(auth_url)
-
-        return spotipy.Spotify(auth_manager=auth_manager)
-
-    @staticmethod
-    def generate_cover_image(spotify, playlist_id):
-        text = "🧨 Generated Power"
-        text = "Generated Power"
-        fontsize = 120
-
-        img = Image.new('RGB', (1500, 1500), color=(73, 109, 137))
-        draw = ImageDraw.Draw(img)
-
-        font = ImageFont.truetype("Roboto-Black.ttf", fontsize)
-
-        w, h = draw.textsize(text, font=font)
-        draw.text(((1500 - w) / 2, (1500 - h) / 2), text, fill=(255, 255, 0), font=font)
-
-        buffer = BytesIO()
-        img.save(buffer, format="JPEG")
-
-        return spotify.playlist_upload_cover_image(playlist_id, base64.b64encode(buffer.getvalue()))
-
-    @staticmethod
-    def generated_power(spotify):
-        playlist_id = os.environ.get('GENERATED_POWER')
-        saved_tracks = spotify.current_user_saved_tracks(limit=30)
-        spotify_limit_max_tracks = 100
-
-        playlists = [
-            playlist_id,
-            '2GEXzPeksIINQMTivWQ2el',  # HARDCORE💥
-            '5J48965fCl65VnmuU3fmOj',  # 🔥 Uptempo Release Radar
-            '7D4rwrnwUPXxltKJhMVOHk'  # UPTEMPO⚡️
-        ]
-
-        build_track_list = []
-        for track in saved_tracks.get('items'):
-            if track.get('track').get('id') not in build_track_list:
-                build_track_list.append(track.get('track').get('id'))
-
-        for id in playlists:
-            for track in spotify.playlist(id).get('tracks').get('items')[:20]:
-                if track.get('track').get('id') not in build_track_list:
-                    build_track_list.append(track.get('track').get('id'))
-
-        try:
-            spotify.playlist_replace_items(playlist_id, [])
-        except ValueError:
-            return jsonify('Can\'t empty playlist: {}'.format(ValueError))
-
-        split_list = [build_track_list[x:x + spotify_limit_max_tracks]
-                      for x in range(0, len(build_track_list), spotify_limit_max_tracks)]
-        for part_list in split_list:
-            try:
-                spotify.playlist_add_items(playlist_id, part_list)
-            except ValueError:
-                return jsonify('Can\'t add track to playlist: {}'.format(ValueError))
-
-        return jsonify('OK')
-
 
 @app.route('/')
 def index():
-    spotify = Spotify().authenticate()
+    if not session.get('auth_manager') or \
+            (session.get('auth_manager') and not session['auth_manager'].get_cached_token()):
+        return "<a href='{authenticate}'>Authenticate</a>".format(authenticate=url_for('authenticate'))
 
-    try:
-        user = spotify.user()
-    except ValueError:
-        return "Not authenticated yet!"
+    return """
+<ul>
+    <li><a href="{action_generate}">Generate</a></li>
+    <li><a href="{action_image}">Create Image</a></li>
+    <li><a href="{sign_out}">Sign out</a></li>
+</ul>
+    """.format(
+        action_generate=url_for('actions', action_type='generate'),
+        action_image=url_for('actions', action_type='image'),
+        sign_out=url_for('sign_out'))
 
-    try:
-        return Spotify().generated_power(spotify)
-    except ValueError:
-        return "Oops! Try again..."
+
+@app.route('/authenticate')
+def authenticate():
+    return spotify_functions.authenticate()
 
 
-@app.route('/image')
-def image():
-    spotify = Spotify().authenticate()
+@app.route('/actions')
+@app.route('/actions/<action_type>')
+def actions(action_type=None):
+    if not action_type:
+        return """
+<style>
+body {
+    margin: 0;
+    padding: 0;
+}
+.container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%;
+}
+iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+</style>
+<div class="container">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/jVCy-gDUosA?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+        """
 
-    try:
-        return Spotify().generate_cover_image(spotify, os.environ.get('GENERATED_POWER'))
-    except ValueError:
-        return "Oops! Try again..."
+    if 'generate' in action_type:
+        return spotify_functions.build_playlist(os.environ.get('PLAYLIST_ID'))
+
+    if 'image' in action_type:
+        return spotify_functions.generate_cover_image(os.environ.get('PLAYLIST_ID'))
+
+    return jsonify('If you don\'t know what you are doing, do it right!')
 
 
 @app.route('/sign_out')
@@ -150,8 +82,9 @@ def sign_out():
         # Remove the CACHE file (.cache-test) so that a new user can authorize.
         os.remove(session_cache_path())
     except OSError as e:
-        print ("Error: %s - %s." % (e.filename, e.strerror))
-    return redirect('/')
+        print("Error: %s - %s." % (e.filename, e.strerror))
+
+    return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
