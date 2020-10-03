@@ -121,7 +121,7 @@ def build_playlist(playlist_id):
 
 
 def get_blacklist():
-    sftp_connection('/heroku/spotify-likes-to-playlist', 'blacklist.json', 'get')
+    # sftp_connection('/heroku/spotify-likes-to-playlist', 'blacklist.json', 'get')
 
     with open('blacklist.json') as blacklist_file:
         blacklist_file.seek(0, 0)
@@ -138,7 +138,8 @@ def edit_blacklist():
                 json.dump(new_data, blacklist_file, indent=4)
                 blacklist_file.truncate()
 
-        return sftp_connection('/heroku/spotify-likes-to-playlist', 'blacklist.json', 'put')
+        # return sftp_connection('/heroku/spotify-likes-to-playlist', 'blacklist.json', 'put')
+        return new_data
 
     return render_template('pages/actions_blacklist.html', data=get_blacklist())
 
