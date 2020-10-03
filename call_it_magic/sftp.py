@@ -28,7 +28,7 @@ def sftp_connection(directory, file_name, handler):
             if handler == 'put' and attr.filename == file_name:
                 try:
                     print(local_file)
-                    sftp.put(attr.filename, file_name)
+                    sftp.put(file_name)
                 except IOError:
                     return jsonify(IOError)
                 except OSError:
