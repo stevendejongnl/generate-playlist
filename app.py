@@ -1,11 +1,15 @@
 import os
 
+from dotenv import load_dotenv
 from flask import session, Flask, redirect, jsonify, url_for, render_template, send_from_directory
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
+from flask_seeder import FlaskSeeder
 
 from call_it_magic import spotify_functions
 from call_it_magic.cache import session_cache_path
+
+load_dotenv()
 
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
 
@@ -15,8 +19,10 @@ app.config['SESSION_FILE_DIR'] = './.flask_session/'
 app.config.from_object(os.environ.get('APP_SETTINGS'))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
 Session(app)
+db = SQLAlchemy(app)
+seeder = FlaskSeeder()
+seeder.init_app(app, db)
 
 from models import Blacklist
 
@@ -94,13 +100,19 @@ def sign_out():
     return redirect(url_for('index'))
 
 
-@app.route("/blacklist/tracks")
-def get_all():
+@app.route("/blacklist")
+def get_blacklist():
     try:
-        books=Blacklist.query.all()
-        return  jsonify([e.serialize() for e in books])
+        blacklist = Blacklist.query.all()
+        return jsonify([e.serialize() for e in blacklist])
     except Exception as e:
-	    return(str(e))
+        return (str(e))
+
+
+@app.route("/blacklist/add", methods=['POST'])
+def add_to_blacklist():
+    from call_it_magic.blacklist import insert
+    return insert()
 
 
 if __name__ == '__main__':
