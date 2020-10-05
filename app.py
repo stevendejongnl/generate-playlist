@@ -2,15 +2,23 @@ import os
 
 from flask import session, Flask, redirect, jsonify, url_for, render_template, send_from_directory
 from flask_session import Session
+from flask_sqlalchemy import SQLAlchemy
 
 from call_it_magic import spotify_functions
 from call_it_magic.cache import session_cache_path
 
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
+
 app.config['SECRET_KEY'] = os.urandom(64)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = './.flask_session/'
+app.config.from_object(os.environ.get('APP_SETTINGS'))
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 Session(app)
+
+from models import Blacklist
 
 
 @app.route('/')
@@ -84,6 +92,15 @@ def sign_out():
         print("Error: %s - %s." % (e.filename, e.strerror))
 
     return redirect(url_for('index'))
+
+
+@app.route("/blacklist/tracks")
+def get_all():
+    try:
+        books=Blacklist.query.all()
+        return  jsonify([e.serialize() for e in books])
+    except Exception as e:
+	    return(str(e))
 
 
 if __name__ == '__main__':
