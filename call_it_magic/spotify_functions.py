@@ -99,7 +99,7 @@ def build_playlist(playlist_id):
             build_track_list.append(track_id)
 
     for get_id in playlists:
-        for track in session['spotify'].playlist(get_id).get('tracks').get('items')[:20]:
+        for track in session['spotify'].playlist(get_id).get('tracks').get('items'):
             track_id = track.get('track').get('id')
             if track_id not in build_track_list and track_id not in get_blacklist().get('tracks'):
                 build_track_list.append(track_id)
