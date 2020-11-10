@@ -109,6 +109,7 @@ def build_playlist(playlist_id):
     except ValueError:
         return render_template('pages/error.html', message='Can\'t empty playlist: {}'.format(ValueError))
 
+    random.shuffle(build_track_list)
     split_list = [build_track_list[x:x + spotify_limit_max_tracks]
                   for x in range(0, len(build_track_list), spotify_limit_max_tracks)]
     for part_list in split_list:
