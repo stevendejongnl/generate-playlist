@@ -1,66 +1,56 @@
 import os
+from os.path import join, dirname
 
 from dotenv import load_dotenv
-from flask import session, Flask, redirect, jsonify, url_for, render_template, send_from_directory
+from flask import Flask, render_template, make_response, jsonify
 from flask_session import Session
-from flask_sqlalchemy import SQLAlchemy
-from flask_seeder import FlaskSeeder
 
-from call_it_magic import spotify_functions
-from call_it_magic.cache import session_cache_path
+from api.playlist import api_playlist_blueprint
+from api.blacklist import api_blacklist_blueprint
+from api.spotify import api_spotify_blueprint
+from lib.mongo import MongoAuthentication
+from routes.home import home_blueprint
+from routes.spotify import spotify_blueprint
+from lib import spotify
+from lib.blacklist import Blacklist
 
-load_dotenv()
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
+environment = os.getenv('ENVIRONMENT')
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
 
-app.config['SECRET_KEY'] = os.urandom(64)
+if environment == 'production':
+    app.config.from_object('config.ProductionConfig')
+else:
+    app.config.from_object('config.DevelopmentConfig')
+
+client = MongoAuthentication()
+
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = './.flask_session/'
-app.config.from_object(os.environ.get('APP_SETTINGS'))
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SESSION_TYPE'] = 'mongodb'
+
+# app.config['SESSION_MONGODB'] = client.connect()
+# app.config['SESSION_MONGODB_DB'] = 'playlistgenerator'
+# app.config['SESSION_MONGODB_COLLECT'] = 'sessions'
+
+# app.config['SESSION_PERMANENT'] = True  # if set to true, close the browser session is failure.
+# app.config['SESSION_USE_SIGNER'] = False  # whether to send to the browser session cookie value to encrypt
+# app.config['SESSION_KEY_PREFIX'] = 'session:'  # the prefix of the value stored in session
+
+app.config['SECRET_KEY'] = os.urandom(64)
 
 Session(app)
-db = SQLAlchemy(app)
-seeder = FlaskSeeder()
-seeder.init_app(app, db)
 
-from models import Blacklist
-
-
-@app.route('/')
-def index():
-    if not session.get('auth_manager') or \
-            (session.get('auth_manager') and not session['auth_manager'].get_cached_token()):
-        return render_template('pages/index.html', url_list=[
-            {
-                "href": url_for('authenticate'),
-                "text": "Authenticate"
-            }
-        ])
-
-    return render_template('pages/index.html', url_list=[
-        {
-            "href": url_for('actions', action_type='generate'),
-            "text": "Build playlist"
-        }, {
-            "href": url_for('actions', action_type='image'),
-            "text": "Create new image"
-        }, {
-            "href": url_for('actions', action_type='blacklist_advanced'),
-            "text": "Edit blacklist"
-        }, {
-            "href": url_for('actions', action_type='blacklist'),
-            "text": "Select tracks for blacklist"
-        }, {
-            "href": url_for('sign_out'),
-            "text": "Sign out"
-        }
-    ])
+app.register_blueprint(home_blueprint)
+app.register_blueprint(spotify_blueprint)
+app.register_blueprint(api_playlist_blueprint)
+app.register_blueprint(api_blacklist_blueprint)
+app.register_blueprint(api_spotify_blueprint)
 
 
-@app.route('/authenticate')
-def authenticate():
-    return spotify_functions.authenticate()
+# register_blueprint(app)
 
 
 @app.route('/actions')
@@ -70,49 +60,39 @@ def actions(action_type=None):
         return render_template('pages/actions_not-set.html')
 
     if 'generate' in action_type:
-        return spotify_functions.build_playlist(os.environ.get('PLAYLIST_ID'))
+        return spotify.build_playlist(os.environ.get('PLAYLIST_ID'))
 
     if 'image' in action_type:
-        return spotify_functions.generate_cover_image(os.environ.get('PLAYLIST_ID'))
+        return spotify.generate_cover_image(os.environ.get('PLAYLIST_ID'))
 
     if 'blacklist_view' in action_type:
-        return spotify_functions.get_blacklist()
+        blacklist = Blacklist()
+
+        return make_response(jsonify({"status": "ok", "data": blacklist.get()}), 200)
 
     if 'blacklist_advanced' in action_type:
-        return spotify_functions.edit_blacklist()
+        # if request.method == 'POST' and request.get_json(force=True):
+        #     new_data = request.get_json(force=True)
+        #
+        #     if new_data.get('tracks'):
+        #         with open('blacklist.json', 'r+') as blacklist_file:
+        #             blacklist_file.seek(0, 0)
+        #             json.dump(new_data, blacklist_file, indent=4)
+        #             blacklist_file.truncate()
+        #
+        #     # return sftp_connection('/heroku/spotify-likes-to-playlist', 'blacklist.json', 'put')
+        #     return new_data
+
+        blacklist = Blacklist()
+
+        return render_template('pages/actions_blacklist.html', blacklist=blacklist.get())
 
     if 'blacklist' in action_type:
-        return spotify_functions.select_blacklist()
+        blacklist = Blacklist()
+
+        return make_response(jsonify(blacklist.get()), 200)
 
     return render_template('pages/error.html', message='If you don\'t know what you are doing, do it right!')
-
-
-@app.route('/sign_out')
-def sign_out():
-    os.remove(session_cache_path())
-    session.clear()
-    try:
-        # Remove the CACHE file (.cache-test) so that a new user can authorize.
-        os.remove(session_cache_path())
-    except OSError as e:
-        print("Error: %s - %s." % (e.filename, e.strerror))
-
-    return redirect(url_for('index'))
-
-
-@app.route("/blacklist")
-def get_blacklist():
-    try:
-        blacklist = Blacklist.query.all()
-        return jsonify([e.serialize() for e in blacklist])
-    except Exception as e:
-        return (str(e))
-
-
-@app.route("/blacklist/add", methods=['POST'])
-def add_to_blacklist():
-    from call_it_magic.blacklist import insert
-    return insert()
 
 
 if __name__ == '__main__':

@@ -1,8 +1,4 @@
-from dotenv import load_dotenv
-
 from mongo_authentication import MongoAuthentication
-
-load_dotenv()
 
 client = MongoAuthentication()
 collection = client.connect()
@@ -23,6 +19,13 @@ blacklist = [
     }
 ]
 
-# blacklist_collection.insert_many(blacklist)
+cursor = blacklist_collection.find({})
 
-blacklist_collection.read_many()
+for item in cursor:
+    print(item['spotify_id'])
+
+
+# blacklist_collection.insert_many(blacklist)
+#
+# for x in blacklist_collection.find():
+#     print(x)

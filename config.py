@@ -7,8 +7,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     CSRF_ENABLED = True
-    SECRET_KEY = 'spotify-likes-to-playlist-yo'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SECRET_KEY = 'playlist-generator-secret-key'
 
 
 class ProductionConfig(Config):
