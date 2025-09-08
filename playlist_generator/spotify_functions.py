@@ -56,12 +56,20 @@ class SpotifyManager:
                 session['token_info'] = token_info
                 logger.info("Spotify access token stored in session.")
                 return redirect(url_for('authenticate'))
-            if not auth_manager.get_cached_token():
+            try:
+                cached_token = auth_manager.get_cached_token()
+            except json.decoder.JSONDecodeError as e:
+                logger.error(f"Cache file is invalid JSON: {e}. Deleting cache and forcing re-authentication.")
+                cache_path = Config.SPOTIPY_CACHE_PATH
+                if os.path.exists(cache_path):
+                    os.remove(cache_path)
+                    logger.info(f"Deleted corrupted cache file: {cache_path}")
+                cached_token = None
+            if not cached_token:
                 auth_url = auth_manager.get_authorize_url()
                 logger.info(f"Redirecting to Spotify auth URL: {auth_url}")
                 return redirect(auth_url)
-            token_info = auth_manager.get_cached_token()
-            session['token_info'] = token_info
+            session['token_info'] = cached_token
             logger.info("Cached Spotify token stored in session.")
         return redirect(url_for('index'))
 
