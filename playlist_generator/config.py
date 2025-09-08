@@ -5,7 +5,9 @@ from typing import Optional
 
 class Config:
     basedir: str = os.path.abspath(os.path.dirname(__file__))
-    load_dotenv(os.path.join(os.path.dirname(basedir), '.env'))
+    env_path = os.path.join(os.path.dirname(basedir), '.env')
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
 
     SPOTIPY_CLIENT_ID: Optional[str] = os.getenv('SPOTIPY_CLIENT_ID')
     SPOTIPY_CLIENT_SECRET: Optional[str] = os.getenv('SPOTIPY_CLIENT_SECRET')
