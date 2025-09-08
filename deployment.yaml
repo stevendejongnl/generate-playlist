@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: madebysteven
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generate-playlist
+  namespace: madebysteven
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: generate-playlist
+  template:
+    metadata:
+      labels:
+        app: generate-playlist
+    spec:
+      containers:
+      - name: madebysteven
+        image: ghcr.io/stevendejongnl/generate-playlist:latest
+        ports:
+          - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: generate-playlist-app
+  namespace: madebysteven
+spec:
+  selector:
+    app: generate-playlist
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: generate-playlist-nginx
+  namespace: madebysteven
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: spotify.madebysteven.nl
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: generate-playlist-app
+            port:
+              number: 5000
