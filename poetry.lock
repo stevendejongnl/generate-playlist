@@ -364,20 +364,24 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flask-migrate"
-version = "2.5.3"
-description = "SQLAlchemy database migrations for Flask applications using Alembic"
+version = "4.1.0"
+description = "SQLAlchemy database migrations for Flask applications using Alembic."
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "Flask-Migrate-2.5.3.tar.gz", hash = "sha256:a69d508c2e09d289f6e55a417b3b8c7bfe70e640f53d2d9deb0d056a384f37ee"},
-    {file = "Flask_Migrate-2.5.3-py2.py3-none-any.whl", hash = "sha256:4dc4a5cce8cbbb06b8dc963fd86cf8136bd7d875aabe2d840302ea739b243732"},
+    {file = "Flask_Migrate-4.1.0-py3-none-any.whl", hash = "sha256:24d8051af161782e0743af1b04a152d007bad9772b2bca67b7ec1e8ceeb3910d"},
+    {file = "flask_migrate-4.1.0.tar.gz", hash = "sha256:1a336b06eb2c3ace005f5f2ded8641d534c18798d64061f6ff11f79e1434126d"},
 ]
 
 [package.dependencies]
-alembic = ">=0.7"
+alembic = ">=1.9.0"
 Flask = ">=0.9"
 Flask-SQLAlchemy = ">=1.0"
+
+[package.extras]
+dev = ["flake8", "pytest", "tox"]
+docs = ["sphinx"]
 
 [[package]]
 name = "flask-script"
@@ -1213,4 +1217,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.8,<3.14"
-content-hash = "9af70da2c61c328a010f175cacf3c956ee646606b03e44d40e831e9daf1c6d1f"
+content-hash = "6cba73f1da145b68486308dc80e6fd41239bb6a0640adcc9ad3f2e2fb9f9ba66"
