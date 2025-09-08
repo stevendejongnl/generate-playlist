@@ -1,9 +1,0 @@
-{
-  "scripts": {
-    "start": "nf start",
-    "watch": "nodemon --watch ./ --delay 3.2 --ext py,html,js,css"
-  },
-  "dependencies": {
-    "jsoneditor": "^9.1.1"
-  }
-}

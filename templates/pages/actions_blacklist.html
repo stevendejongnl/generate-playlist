@@ -3,53 +3,27 @@
 {% block title %}Blacklist editor{% endblock %}
 
 {% block content %}
-    <div id="jsoneditor" class="jsoneditor-container"></div>
+    <h2>Edit Blacklist</h2>
+    <form method="post" action="{{ url_for('actions', action_type='blacklist') }}">
+        <label for="add_track">Add track:</label>
+        <input type="text" id="add_track" name="add_track" required placeholder="Track ID or name">
+        <button type="submit">Add</button>
+    </form>
+    <hr>
+    <ul>
+    {% for track in data['tracks'] %}
+        <li>
+            <span>{{ track }}</span>
+            <form method="post" action="{{ url_for('actions', action_type='blacklist') }}" style="display:inline;">
+                <input type="hidden" name="delete_track" value="{{ track }}">
+                <button type="submit" class="danger">Delete</button>
+            </form>
+        </li>
+    {% else %}
+        <li style="text-align:center; color: var(--text-muted);">No tracks in blacklist.</li>
+    {% endfor %}
+    </ul>
 {% endblock %}
 
-{% block head_styles %}
-    <link href="{{ url_for('static', filename='vendor/jsoneditor/dist/jsoneditor.min.css') }}" rel="stylesheet" type="text/css">
-{% endblock %}
-
-{% block body_scripts %}
-    <script src="{{ url_for('static', filename='vendor/jsoneditor/dist/jsoneditor.min.js') }}"></script>
-    <script>
-        let check_for_change = false
-        const container = document.getElementById("jsoneditor")
-        const options = {
-            mode: 'code',
-            onValidate: function (json) {
-                let errors = [];
-
-                if (json && !json['tracks']) {
-                  errors.push({
-                    path: ['tracks'],
-                    message: 'Required property "tracks" missing.'
-                  });
-                }
-
-                return errors;
-            },
-            onChangeText: function (jsonString) {
-                if (!check_for_change && editor.get()) {
-                    check_for_change = true
-
-                    fetch('{{ url_for('actions', action_type='blacklist') }}', {
-                        method: 'POST',
-                        body: jsonString,
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    }).then(() => {
-                        setTimeout(() => {
-                            check_for_change = false
-                        }, 500)
-                    });
-                }
-            }
-        }
-        const editor = new JSONEditor(container, options)
-
-        editor.set({{ data | tojson }})
-    </script>
-{% endblock %}
+{% block head_styles %}{% endblock %}
+{% block body_scripts %}{% endblock %}

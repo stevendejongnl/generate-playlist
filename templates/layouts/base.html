@@ -10,13 +10,21 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/app.css') }}">
 </head>
 <body>
-<section class="content">
+<header>
+    <h1>Playlist Generator</h1>
+    <nav>
+        <a href="{{ url_for('index') }}" class="home-link">&#8962; Home</a>
+    </nav>
+</header>
+<div class="container">
     {% for message in get_flashed_messages() %}
         <div class="flash">{{ message }}</div>
     {% endfor %}
     {% block content %}{% endblock %}
-</section>
-
+</div>
+<footer>
+    &copy; {{ now().year if now else '2025' }} - Powered by me, Just me..
+</footer>
 {% block body_scripts %}{% endblock %}
 </body>
 </html>

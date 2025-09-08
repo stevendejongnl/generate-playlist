@@ -1,10 +1,15 @@
 FROM python:3.8-slim-buster
 
-WORKDIR /src
+WORKDIR /app
 
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir poetry
 
+COPY pyproject.toml poetry.lock* ./
+COPY .env ./
+RUN poetry install --no-interaction --no-ansi
+RUN poetry --version && poetry install --no-interaction --no-ansi
 COPY . .
 
-CMD [ "python", "-m" , "flask", "run", "--host=0.0.0.0"]
+RUN mkdir -p /app/.cache
+
+CMD [ "poetry", "run", "python", "-m", "playlist_generator.main" ]
