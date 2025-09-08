@@ -47,8 +47,7 @@ class SpotifyManager:
                 client_secret=Config.SPOTIPY_CLIENT_SECRET,
                 redirect_uri=Config.SPOTIPY_REDIRECT_URI,
                 scope=' '.join(self.scopes),
-                show_dialog=True,
-                cache_path=Config.SPOTIPY_CACHE_PATH
+                show_dialog=True
             )
             if request.args.get("code"):
                 logger.info("Received Spotify auth code; fetching access token.")
@@ -56,21 +55,9 @@ class SpotifyManager:
                 session['token_info'] = token_info
                 logger.info("Spotify access token stored in session.")
                 return redirect(url_for('authenticate'))
-            try:
-                cached_token = auth_manager.get_cached_token()
-            except json.decoder.JSONDecodeError as e:
-                logger.error(f"Cache file is invalid JSON: {e}. Deleting cache and forcing re-authentication.")
-                cache_path = Config.SPOTIPY_CACHE_PATH
-                if os.path.exists(cache_path):
-                    os.remove(cache_path)
-                    logger.info(f"Deleted corrupted cache file: {cache_path}")
-                cached_token = None
-            if not cached_token:
-                auth_url = auth_manager.get_authorize_url()
-                logger.info(f"Redirecting to Spotify auth URL: {auth_url}")
-                return redirect(auth_url)
-            session['token_info'] = cached_token
-            logger.info("Cached Spotify token stored in session.")
+            auth_url = auth_manager.get_authorize_url()
+            logger.info(f"Redirecting to Spotify auth URL: {auth_url}")
+            return redirect(auth_url)
         return redirect(url_for('index'))
 
     def generate_cover_image(self, playlist_id: str) -> Response:
