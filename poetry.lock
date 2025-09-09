@@ -488,19 +488,19 @@ Flask = "*"
 
 [[package]]
 name = "flask-session"
-version = "0.3.2"
+version = "0.4.1"
 description = "Adds server-side session support to your Flask application"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "Flask-Session-0.3.2.tar.gz", hash = "sha256:0768e2bbf06f963ec1aa711bde7aa32dc39ff70f89b495d6db687d899eae4423"},
-    {file = "Flask_Session-0.3.2-py2.py3-none-any.whl", hash = "sha256:d75eb27f918421ccaf1ba86353348b84ecf07fc64ce40ff7ad05a190c4bf50f1"},
+    {file = "Flask-Session-0.4.1.tar.gz", hash = "sha256:2f3954a8ca2fd4fdc9ffda97f5f469668f5f18fab0fe2f69d496d17be312d96e"},
+    {file = "Flask_Session-0.4.1-py2.py3-none-any.whl", hash = "sha256:e87c9daef93336e75dbf114f5fdec92f67bac21cef541b8d37173461b6174eca"},
 ]
 
 [package.dependencies]
 cachelib = "*"
-Flask = ">=0.8"
+Flask = ">=0.8,<2.3"
 
 [[package]]
 name = "flask-sqlalchemy"
@@ -1307,4 +1307,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.8,<3.14"
-content-hash = "5d225986ada20bf296d8a726155281145941042e681164b2b48530442db551e8"
+content-hash = "d2428ef4596e538a5a50372dd3a9e6e1abcebdb2a12fc705a5be0c838e4e0a6a"
