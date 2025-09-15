@@ -1305,19 +1305,24 @@ files = [
 
 [[package]]
 name = "virtualenvwrapper"
-version = "4.8.4"
-description = "Enhancements to virtualenv"
+version = "6.1.1"
+description = ""
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "virtualenvwrapper-4.8.4.tar.gz", hash = "sha256:51a1a934e7ed0ff221bdd91bf9d3b604d875afbb3aa2367133503fee168f5bfa"},
+    {file = "virtualenvwrapper-6.1.1-py3-none-any.whl", hash = "sha256:788352bf4fc10e244728ea08d094b5ddc39bdf913acc0474d2614020960260d3"},
+    {file = "virtualenvwrapper-6.1.1.tar.gz", hash = "sha256:112e7ea34a9a3ce90aaea54182f0d3afef4d1a913eeb75e98a263b4978cd73c6"},
 ]
 
 [package.dependencies]
 stevedore = "*"
 virtualenv = "*"
 virtualenv-clone = "*"
+
+[package.extras]
+build = ["build", "check-python-versions", "twine"]
+linter = ["flake8"]
 
 [[package]]
 name = "werkzeug"
@@ -1358,4 +1363,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.8,<3.14"
-content-hash = "bdb650bbbcf4d0441c85a32110f3d28c489a767e47ba897ec99c2bb85dd35ee3"
+content-hash = "d935e7710875bc197898a4305451b761f6f3832ea10b15e6768f2ce2f30a6416"
