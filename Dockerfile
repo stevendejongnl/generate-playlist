@@ -1,12 +1,11 @@
-FROM python:3.8-slim-buster
+FROM python:3.12
 
 WORKDIR /app
 
 RUN pip install --no-cache-dir poetry
 
 COPY pyproject.toml poetry.lock* ./
-RUN poetry install --no-interaction --no-ansi
-RUN poetry --version && poetry install --no-interaction --no-ansi
+RUN poetry --version && poetry install --no-interaction --no-ansi --no-root
 COPY . .
 
 RUN mkdir -p /app/.cache
