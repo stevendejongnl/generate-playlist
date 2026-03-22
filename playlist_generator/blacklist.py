@@ -3,8 +3,6 @@ import os
 import logging
 from typing import List
 
-from flask import request, jsonify
-
 logger = logging.getLogger(__name__)
 
 

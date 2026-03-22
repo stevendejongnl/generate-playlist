@@ -7,23 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{% block title %}{% endblock %}Playlist generator</title>
     {% block head_styles %}{% endblock %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/app.css') }}">
+    <link rel="stylesheet" href="/static/styles/app.css">
 </head>
 <body>
 <header>
     <h1>Playlist Generator</h1>
     <nav>
-        <a href="{{ url_for('index') }}" class="home-link">&#8962; Home</a>
+        <a href="/" class="home-link">&#8962; Home</a>
     </nav>
 </header>
 <div class="container">
-    {% for message in get_flashed_messages() %}
-        <div class="flash">{{ message }}</div>
-    {% endfor %}
     {% block content %}{% endblock %}
 </div>
 <footer>
-    &copy; {{ now().year if now else '2025' }} - Powered by me, Just me..
+    &copy; 2025 - Powered by me, Just me..
 </footer>
 {% block body_scripts %}{% endblock %}
 </body>

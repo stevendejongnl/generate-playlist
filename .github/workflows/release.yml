@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Dry-run to detect next version
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+        run: |
+          npx semantic-release --dry-run > release-output.txt 2>&1 || true
+          echo "=== semantic-release dry-run output ==="
+          cat release-output.txt
+          echo "======================================="
+          if grep -qi "the next release version is" release-output.txt; then
+            NEXT_VERSION=$(grep -i "the next release version is" release-output.txt | sed 's/.*the next release version is //i' | tr -d '[:space:]')
+            echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+            echo "SHOULD_RELEASE=true" >> $GITHUB_ENV
+            echo "Next version: $NEXT_VERSION"
+          else
+            echo "SHOULD_RELEASE=false" >> $GITHUB_ENV
+            echo "No release needed"
+          fi
+
+      - name: Run semantic-release
+        if: env.SHOULD_RELEASE == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+        run: npx semantic-release
+
+      - name: Trigger Docker build & deploy
+        if: env.SHOULD_RELEASE == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          NEXT_VERSION: ${{ env.NEXT_VERSION }}
+        run: |
+          git fetch origin master
+          RELEASE_SHA=$(git rev-parse origin/master)
+          gh api repos/${{ github.repository }}/dispatches \
+            --method POST \
+            --field event_type='release-created' \
+            --field client_payload[version]="$NEXT_VERSION" \
+            --field client_payload[commit_sha]="$RELEASE_SHA"
+          echo "Dispatched release-created for v$NEXT_VERSION ($RELEASE_SHA)"

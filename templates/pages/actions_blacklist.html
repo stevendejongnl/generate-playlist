@@ -4,7 +4,7 @@
 
 {% block content %}
     <h2>Edit Blacklist</h2>
-    <form method="post" action="{{ url_for('actions', action_type='blacklist') }}">
+    <form method="post" action="/actions/blacklist">
         <label for="add_track">Add track:</label>
         <input type="text" id="add_track" name="add_track" required placeholder="Track ID or name">
         <button type="submit">Add</button>
@@ -14,7 +14,7 @@
     {% for track in data['tracks'] %}
         <li>
             <span>{{ track }}</span>
-            <form method="post" action="{{ url_for('actions', action_type='blacklist') }}" style="display:inline;">
+            <form method="post" action="/actions/blacklist" style="display:inline;">
                 <input type="hidden" name="delete_track" value="{{ track }}">
                 <button type="submit" class="danger">Delete</button>
             </form>

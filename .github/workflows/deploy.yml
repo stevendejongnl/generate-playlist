@@ -1,8 +1,8 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches: [ master ]
+  repository_dispatch:
+    types: [release-created]
 
 jobs:
   build-and-push-image:
@@ -14,6 +14,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.client_payload.commit_sha }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -35,4 +37,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.repo-name.outputs.lowercase }}:latest
-            ghcr.io/${{ steps.repo-name.outputs.lowercase }}:${{ github.sha }}
+            ghcr.io/${{ steps.repo-name.outputs.lowercase }}:${{ github.event.client_payload.version }}
