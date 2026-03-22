@@ -4,3 +4,6 @@ data
 __pycache__
 .idea/
 deployment.yaml
+node_modules/
+.coverage
+*.jpg
