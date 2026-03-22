@@ -1,13 +1,25 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: madebysteven
+  name: generate-playlist
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: generate-playlist-secret
+  namespace: generate-playlist
+type: Opaque
+stringData:
+  SPOTIPY_CLIENT_ID: "your_spotify_client_id"
+  SPOTIPY_CLIENT_SECRET: "your_spotify_client_secret"
+  SPOTIPY_REDIRECT_URI: "https://your-domain.example.com/authenticate"
+  PLAYLIST_ID: "your_spotify_playlist_id"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: generate-playlist
-  namespace: madebysteven
+  namespace: generate-playlist
 spec:
   replicas: 1
   selector:
@@ -19,16 +31,19 @@ spec:
         app: generate-playlist
     spec:
       containers:
-      - name: madebysteven
+      - name: generate-playlist
         image: ghcr.io/stevendejongnl/generate-playlist:latest
         ports:
           - containerPort: 5000
+        envFrom:
+          - secretRef:
+              name: generate-playlist-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: generate-playlist-app
-  namespace: madebysteven
+  name: generate-playlist-service
+  namespace: generate-playlist
 spec:
   selector:
     app: generate-playlist
@@ -41,19 +56,19 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: generate-playlist-nginx
-  namespace: madebysteven
+  namespace: generate-playlist
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
 spec:
   ingressClassName: nginx
   rules:
-  - host: spotify.madebysteven.nl
+  - host: your-domain.example.com
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: generate-playlist-app
+            name: generate-playlist-service
             port:
-              number: 5000
+              number: 80
