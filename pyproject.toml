@@ -7,7 +7,7 @@ packages = ["playlist_generator"]
 
 [project]
 name = "generate-playlist"
-version = "1.6.1"
+version = "1.6.2"
 description = ""
 authors = [{name = "Steven de Jong", email = "sdejong@cloudsuite.com"}]
 requires-python = ">=3.12,<3.14"

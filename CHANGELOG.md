@@ -1,3 +1,9 @@
+## [1.6.2](https://github.com/stevendejongnl/generate-playlist/compare/v1.6.1...v1.6.2) (2026-04-16)
+
+### Bug Fixes
+
+* improve play history pagination with debug logging and relaxed early-stop ([226bc44](https://github.com/stevendejongnl/generate-playlist/commit/226bc44302b31a4fc17ec1e77ebe52403fbeb83a))
+
 ## [1.6.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.6.0...v1.6.1) (2026-04-16)
 
 ### Bug Fixes
