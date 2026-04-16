@@ -4,29 +4,18 @@
 {% block content %}
 <h1>Skipped Tracks</h1>
 <p class="text-muted" style="margin-bottom: 1rem;">
-    Tracks you skipped through quickly. Based on actual play duration vs track length.
-    History accumulates over time for better detection.
+    Tracks you skipped through quickly, based on actual play duration.
+    Your history grows automatically each time you visit this page.
 </p>
 
-<div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+<div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1.5rem;">
     <button class="btn btn-primary"
-            hx-post="/api/skips/sync?pages=1"
+            hx-post="/api/skips/sync"
             hx-target="#sync-result"
             hx-swap="innerHTML">
-        Sync Latest
+        Sync Now
     </button>
-    <button class="btn btn-secondary"
-            hx-post="/api/skips/sync?pages=5"
-            hx-target="#sync-result"
-            hx-swap="innerHTML">
-        Deep Sync (250 plays)
-    </button>
-    <button class="btn btn-secondary"
-            hx-post="/api/skips/sync?pages=10"
-            hx-target="#sync-result"
-            hx-swap="innerHTML">
-        Full Sync (500 plays)
-    </button>
+    <span class="text-muted text-small">Spotify keeps ~50 recent plays. We store them so your history accumulates over time.</span>
 </div>
 <div id="sync-result"></div>
 
@@ -37,7 +26,7 @@
              hx-get="/api/skips/detect"
              hx-trigger="load"
              hx-swap="innerHTML">
-            <div class="empty-state"><span class="spinner"></span> Analyzing play history...</div>
+            <div class="empty-state"><span class="spinner"></span> Syncing &amp; analyzing...</div>
         </div>
     </div>
 

@@ -30,10 +30,9 @@ async def sync_history(
     user: Annotated[User, Depends(get_current_user)],
     spotify: Annotated[spotipy.Spotify, Depends(get_spotify)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    pages: int = 1,
 ) -> HTMLResponse:
     """Fetch new plays from Spotify and store them. Returns a status message."""
-    new_count = await skips_service.sync_play_history(user.id, spotify, db, pages=pages)
+    new_count = await skips_service.sync_play_history(user.id, spotify, db)
     stats = await skips_service.get_history_stats(user.id, db)
     return HTMLResponse(
         f'<div class="alert alert-success" data-auto-dismiss>'
