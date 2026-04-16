@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.1.3...v1.2.0) (2026-04-16)
+
+### Features
+
+* replace manual ID inputs with smart Spotify browse panels ([2b4af68](https://github.com/stevendejongnl/generate-playlist/commit/2b4af6836326cc99f02037712db1a974b388b588))
+
 ## [1.1.3](https://github.com/stevendejongnl/generate-playlist/compare/v1.1.2...v1.1.3) (2026-04-16)
 
 ### Bug Fixes
