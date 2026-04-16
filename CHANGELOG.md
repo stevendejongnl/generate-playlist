@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.3.1...v1.4.0) (2026-04-16)
+
+### Features
+
+* add skipped tracks detection with play history and one-click blacklist ([89e0ee0](https://github.com/stevendejongnl/generate-playlist/commit/89e0ee0e04b1b8bdaaabb09c09707a87457738e5))
+
 ## [1.3.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.3.0...v1.3.1) (2026-04-16)
 
 ### Bug Fixes
