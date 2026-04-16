@@ -26,13 +26,25 @@ _root_dir = os.path.dirname(_pkg_dir)
 templates = Jinja2Templates(directory=os.path.join(_root_dir, "templates"))
 
 
+def _get_version() -> str:
+    """Read the app version from pyproject.toml (set by semantic-release)."""
+    try:
+        import importlib.metadata
+
+        return importlib.metadata.version("generate-playlist")
+    except Exception:
+        return "dev"
+
+
 def _format_timestamp(value: float) -> str:
     """Convert a unix timestamp to a human-readable string."""
     dt = datetime.fromtimestamp(value, tz=timezone.utc)
     return dt.strftime("%Y-%m-%d %H:%M")
 
 
+APP_VERSION = _get_version()
 templates.env.filters["timestamp"] = _format_timestamp
+templates.env.globals["app_version"] = APP_VERSION
 pages.set_templates(templates)
 base_list.set_templates(templates)
 blacklist.set_templates(templates)

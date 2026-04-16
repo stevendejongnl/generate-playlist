@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}Playlist Generator</title>
-    <link rel="stylesheet" href="/static/styles/app.css">
+    <link rel="stylesheet" href="/static/styles/app.css?v={{ app_version }}">
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -30,7 +30,7 @@
 
     <footer>&copy; 2025 Playlist Generator</footer>
 
-    <script src="/static/js/app.iife.js"></script>
+    <script src="/static/js/app.iife.js?v={{ app_version }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
