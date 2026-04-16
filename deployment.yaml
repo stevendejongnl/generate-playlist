@@ -54,6 +54,7 @@ spec:
       containers:
       - name: generate-playlist
         image: ghcr.io/stevendejongnl/generate-playlist:latest
+        imagePullPolicy: Always
         ports:
           - containerPort: 5000
         envFrom:
