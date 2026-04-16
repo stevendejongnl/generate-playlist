@@ -2,21 +2,26 @@
     --primary: #1db954;
     --primary-dark: #12833a;
     --primary-glow: rgba(29, 185, 84, 0.15);
-    --background: #0a0a0a;
-    --surface: #161616;
-    --surface-hover: #1e1e1e;
-    --surface-border: #2a2a2a;
+    --background: #050505;
+    --surface: rgba(255, 255, 255, 0.04);
+    --surface-solid: #131313;
+    --surface-hover: rgba(255, 255, 255, 0.07);
+    --surface-border: rgba(255, 255, 255, 0.08);
     --accent: #ffb74d;
     --danger: #e74c3c;
     --danger-dark: #c0392b;
     --text: #f0f0f0;
     --text-muted: #888;
     --text-dim: #555;
-    --radius: 8px;
-    --radius-lg: 12px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.3);
-    --shadow-lg: 0 4px 20px rgba(0,0,0,0.4);
-    --transition: 0.15s ease;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --glass-blur: 16px;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --glass-highlight: rgba(255, 255, 255, 0.08);
+    --transition: 0.2s ease;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -30,11 +35,39 @@ body {
     line-height: 1.5;
 }
 
+/* Subtle ambient glow behind content */
+body::before {
+    content: '';
+    position: fixed;
+    top: -40%;
+    left: -20%;
+    width: 60%;
+    height: 80%;
+    background: radial-gradient(ellipse, rgba(29, 185, 84, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+body::after {
+    content: '';
+    position: fixed;
+    bottom: -30%;
+    right: -15%;
+    width: 50%;
+    height: 70%;
+    background: radial-gradient(ellipse, rgba(255, 183, 77, 0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.app-header, .container, footer, .landing-hero { position: relative; z-index: 1; }
+
 /* ── Layout ─────────────────────────────────────────── */
 
 .app-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--surface-border);
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-bottom: 1px solid var(--glass-border);
     padding: 0 1.5rem;
     height: 56px;
     display: flex;
@@ -67,11 +100,15 @@ body {
 }
 
 .card {
-    background: var(--surface);
-    border: 1px solid var(--surface-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-top: 1px solid var(--glass-highlight);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
 }
 
 footer {
@@ -80,6 +117,7 @@ footer {
     font-size: 0.8rem;
     padding: 2rem 0;
     margin-top: 4rem;
+    border-top: 1px solid var(--glass-border);
 }
 
 /* ── Typography ─────────────────────────────────────── */
@@ -136,8 +174,13 @@ h3 { font-size: 1rem; color: var(--text-muted); margin: 0 0 0.75rem; font-weight
     font-size: 1rem;
     padding: 0.75rem 2rem;
     border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(29, 185, 84, 0.3);
 }
-.btn-spotify:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-spotify:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(29, 185, 84, 0.4);
+}
 
 /* Ensure button styling wins over link defaults */
 a.btn, a.btn:visited, a.btn:hover, a.btn:active {
@@ -162,17 +205,20 @@ a.btn-danger:hover { color: #fff; }
 .form-input {
     width: 100%;
     padding: 0.6rem 0.8rem;
-    background: var(--background);
-    border: 1px solid var(--surface-border);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     color: var(--text);
     font-size: 0.9rem;
-    transition: border-color var(--transition);
+    transition: all var(--transition);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 .form-input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--primary-glow);
+    box-shadow: 0 0 0 2px var(--primary-glow), 0 0 20px rgba(29, 185, 84, 0.08);
+    background: rgba(255, 255, 255, 0.06);
 }
 select.form-input {
     appearance: none;
@@ -196,13 +242,16 @@ select.form-input {
     justify-content: space-between;
     gap: 1rem;
     padding: 0.75rem 1rem;
-    background: var(--background);
-    border: 1px solid var(--surface-border);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     margin-bottom: 0.5rem;
-    transition: border-color var(--transition);
+    transition: all var(--transition);
 }
-.list-item:hover { border-color: var(--surface-hover); }
+.list-item:hover {
+    border-color: var(--glass-highlight);
+    background: rgba(255, 255, 255, 0.04);
+}
 .list-item-info { flex: 1; min-width: 0; }
 .list-item-title {
     font-weight: 500;
@@ -238,10 +287,12 @@ select.form-input {
     border-radius: var(--radius);
     margin-bottom: 1rem;
     font-size: 0.9rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
-.alert-success { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(29,185,84,0.3); }
-.alert-warning { background: rgba(255,183,77,0.1); color: var(--accent); border: 1px solid rgba(255,183,77,0.3); }
-.alert-danger { background: rgba(231,76,60,0.1); color: var(--danger); border: 1px solid rgba(231,76,60,0.3); }
+.alert-success { background: rgba(29,185,84,0.08); color: var(--primary); border: 1px solid rgba(29,185,84,0.2); box-shadow: 0 0 16px rgba(29,185,84,0.05); }
+.alert-warning { background: rgba(255,183,77,0.08); color: var(--accent); border: 1px solid rgba(255,183,77,0.2); box-shadow: 0 0 16px rgba(255,183,77,0.05); }
+.alert-danger { background: rgba(231,76,60,0.08); color: var(--danger); border: 1px solid rgba(231,76,60,0.2); box-shadow: 0 0 16px rgba(231,76,60,0.05); }
 
 /* ── Landing page ───────────────────────────────────── */
 
@@ -276,8 +327,11 @@ select.form-input {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    background: var(--surface);
-    border: 1px solid var(--surface-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-top: 1px solid var(--glass-highlight);
     border-radius: var(--radius-lg);
     padding: 1.25rem;
     text-decoration: none;
@@ -285,10 +339,10 @@ select.form-input {
     transition: all var(--transition);
 }
 .dash-card:hover {
-    border-color: var(--primary);
-    background: var(--surface-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    border-color: rgba(29, 185, 84, 0.3);
+    background: rgba(29, 185, 84, 0.05);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(29, 185, 84, 0.1);
 }
 .dash-card-icon { font-size: 1.5rem; }
 .dash-card-title { font-weight: 600; font-size: 0.95rem; }
@@ -343,8 +397,10 @@ select.form-input {
 /* ── Browse panel ───────────────────────────────────── */
 
 .browse-panel {
-    background: var(--background);
-    border: 1px solid var(--surface-border);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     max-height: 400px;
     overflow-y: auto;
@@ -397,12 +453,17 @@ select.form-input {
     font-weight: 500;
     background: transparent;
     color: var(--text-muted);
-    border: 1px solid var(--surface-border);
+    border: 1px solid var(--glass-border);
     cursor: pointer;
     transition: all var(--transition);
 }
-.browse-tab:hover { color: var(--text); background: var(--surface-hover); }
-.browse-tab.active { color: var(--primary); border-color: var(--primary); background: var(--primary-glow); }
+.browse-tab:hover { color: var(--text); background: var(--glass-highlight); }
+.browse-tab.active {
+    color: var(--primary);
+    border-color: rgba(29, 185, 84, 0.3);
+    background: var(--primary-glow);
+    box-shadow: 0 0 12px rgba(29, 185, 84, 0.1);
+}
 
 .search-inline {
     display: flex;
