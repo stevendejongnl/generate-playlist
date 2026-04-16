@@ -1,3 +1,9 @@
+## [1.6.3](https://github.com/stevendejongnl/generate-playlist/compare/v1.6.2...v1.6.3) (2026-04-16)
+
+### Bug Fixes
+
+* remove deep sync buttons — Spotify only keeps ~50 plays, accumulate over visits instead ([6174595](https://github.com/stevendejongnl/generate-playlist/commit/6174595837273292915c75be9c9ecb4573450c84))
+
 ## [1.6.2](https://github.com/stevendejongnl/generate-playlist/compare/v1.6.1...v1.6.2) (2026-04-16)
 
 ### Bug Fixes
