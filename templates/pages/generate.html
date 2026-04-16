@@ -13,8 +13,7 @@
 <div class="card">
     <form hx-post="/api/generate/preview"
           hx-target="#generation-result"
-          hx-swap="innerHTML"
-          hx-indicator="#preview-spinner">
+          hx-swap="innerHTML">
 
         <div class="form-group">
             <label for="target-select">Target playlist</label>
@@ -57,10 +56,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">
-            Preview
-            <span class="htmx-indicator spinner" id="preview-spinner"></span>
-        </button>
+        <button type="submit" class="btn btn-primary">Preview</button>
     </form>
 </div>
 

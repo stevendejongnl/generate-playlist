@@ -71,24 +71,26 @@ async def preview_ai_image(
 @router.post("/upload/{target_id}")
 async def upload_image(
     target_id: str,
-    text: Annotated[str, Form()],
     user: Annotated[User, Depends(get_current_user)],
     spotify: Annotated[spotipy.Spotify, Depends(get_spotify)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    text: Annotated[str, Form()] = "Generated Power",
     bg_color: Annotated[str, Form()] = "#496D89",
     text_color: Annotated[str, Form()] = "#FFFF00",
     font_size: Annotated[int, Form()] = 120,
     font_name: Annotated[str, Form()] = "Roboto-Black.ttf",
     use_ai: Annotated[str, Form()] = "",
     ai_prompt: Annotated[str, Form()] = "",
+    prompt: Annotated[str, Form()] = "",
 ) -> Response:
     """Generate and upload a cover image to a Spotify playlist."""
     target = await db.get(TargetPlaylist, target_id)
     if not target or target.user_id != user.id:
         return HTMLResponse('<div class="alert alert-danger">Invalid target</div>')
 
-    if use_ai and ai_prompt:
-        img = await cover_service.generate_with_openai(ai_prompt)
+    ai_text = ai_prompt or prompt  # form sends either field name
+    if use_ai and ai_text:
+        img = await cover_service.generate_with_openai(ai_text)
         if img is None:
             return HTMLResponse('<div class="alert alert-warning">AI generation failed, using text fallback</div>')
     else:
