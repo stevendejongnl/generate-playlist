@@ -1,3 +1,9 @@
+## [1.4.2](https://github.com/stevendejongnl/generate-playlist/compare/v1.4.1...v1.4.2) (2026-04-16)
+
+### Bug Fixes
+
+* cover image preview/upload flow — cache preview, compress for Spotify, return HTML ([b85b505](https://github.com/stevendejongnl/generate-playlist/commit/b85b505672096ab5a1ea8222b42f994e9212f239))
+
 ## [1.4.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.4.0...v1.4.1) (2026-04-16)
 
 ### Bug Fixes
