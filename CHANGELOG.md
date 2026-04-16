@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.5.0...v1.6.0) (2026-04-16)
+
+### Features
+
+* persistent play history with track cache, accumulates over time with deep sync ([f01bcc5](https://github.com/stevendejongnl/generate-playlist/commit/f01bcc5ee1a7fbc0b096e75d7524d56705dde70a))
+
 ## [1.5.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.4.2...v1.5.0) (2026-04-16)
 
 ### Features
