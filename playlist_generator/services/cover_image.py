@@ -54,18 +54,38 @@ def generate_image(
     return img
 
 
-def image_to_jpeg_bytes(img: Image.Image) -> bytes:
+def image_to_jpeg_bytes(img: Image.Image, quality: int = 90) -> bytes:
     """Convert a PIL Image to JPEG bytes."""
     buffer = BytesIO()
-    img.save(buffer, format="JPEG", quality=90)
+    img.save(buffer, format="JPEG", quality=quality)
     return buffer.getvalue()
+
+
+def image_to_spotify_bytes(img: Image.Image) -> bytes:
+    """Convert a PIL Image to JPEG bytes that fit Spotify's 256KB limit."""
+    # Spotify requires exactly square, max ~256KB base64
+    max_b64_size = 256_000
+    # Resize to 640x640 (Spotify's standard) if larger
+    if img.width > 640 or img.height > 640:
+        img = img.resize((640, 640), Image.Resampling.LANCZOS)
+
+    # Start at high quality, reduce until it fits
+    for quality in (90, 80, 70, 60, 50):
+        data = image_to_jpeg_bytes(img, quality=quality)
+        b64_size = len(base64.b64encode(data))
+        if b64_size <= max_b64_size:
+            return data
+
+    # Last resort: shrink further
+    img = img.resize((300, 300), Image.Resampling.LANCZOS)
+    return image_to_jpeg_bytes(img, quality=50)
 
 
 async def upload_to_spotify(
     playlist_id: str, img: Image.Image, spotify: spotipy.Spotify
 ) -> None:
     """Upload a cover image to a Spotify playlist."""
-    jpeg_bytes = image_to_jpeg_bytes(img)
+    jpeg_bytes = image_to_spotify_bytes(img)
     b64_data = base64.b64encode(jpeg_bytes).decode()
     await asyncio.to_thread(spotify.playlist_upload_cover_image, playlist_id, b64_data)
 

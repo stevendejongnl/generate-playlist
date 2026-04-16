@@ -37,29 +37,17 @@
                 <span class="text-muted text-small" id="fs-val">120</span>
             </div>
 
-            <div style="display: flex; gap: 0.5rem;">
-                <button type="button" class="btn btn-secondary"
-                        hx-post="/api/cover-image/preview"
-                        hx-include="#cover-form"
-                        hx-target="#preview-img"
-                        hx-swap="innerHTML">
-                    Preview
-                </button>
-                {% if targets %}
-                <button type="button" class="btn btn-primary"
-                        hx-post="/api/cover-image/upload/{{ targets[0].id }}"
-                        hx-include="#cover-form"
-                        hx-target="#upload-result"
-                        hx-swap="innerHTML"
-                        data-confirm="Upload cover image?">
-                    Upload to Spotify
-                </button>
-                {% endif %}
-            </div>
+            <button type="button" class="btn btn-secondary"
+                    hx-post="/api/cover-image/preview"
+                    hx-include="#cover-form"
+                    hx-target="#preview-img"
+                    hx-swap="innerHTML">
+                Preview
+            </button>
         </form>
 
         {% if has_openai %}
-        <hr style="border-color: var(--surface-border); margin: 1.5rem 0;">
+        <hr style="border-color: var(--glass-border); margin: 1.5rem 0;">
         <h2>AI-Generated Cover</h2>
         <form id="ai-form">
             <div class="form-group">
@@ -67,39 +55,42 @@
                 <input type="text" id="ai-prompt" name="prompt" class="form-input"
                        placeholder="e.g. dreamy synthwave sunset, neon pink and blue">
             </div>
-            <div style="display: flex; gap: 0.5rem;">
-                <button type="button" class="btn btn-secondary"
-                        hx-post="/api/cover-image/preview-ai"
-                        hx-include="#ai-form"
-                        hx-target="#preview-img"
-                        hx-swap="innerHTML">
-                    Generate with AI
-                </button>
-                {% if targets %}
-                <button type="button" class="btn btn-primary"
-                        hx-post="/api/cover-image/upload/{{ targets[0].id }}"
-                        hx-include="#ai-form"
-                        hx-vals='{"use_ai": "1", "text": ""}'
-                        hx-target="#upload-result"
-                        hx-swap="innerHTML"
-                        data-confirm="Generate and upload AI cover?">
-                    AI Upload
-                </button>
-                {% endif %}
-            </div>
+            <button type="button" class="btn btn-secondary"
+                    hx-post="/api/cover-image/preview-ai"
+                    hx-include="#ai-form"
+                    hx-target="#preview-img"
+                    hx-swap="innerHTML">
+                Generate with AI
+            </button>
         </form>
         {% endif %}
     </div>
 
-    <!-- Preview area -->
+    <!-- Preview + Upload area -->
     <div>
         <div class="card" style="text-align: center;">
             <h3>Preview</h3>
             <div id="preview-img">
                 <div class="empty-state">
-                    <p>Click "Preview" to see your cover</p>
+                    <p>Click "Preview" or "Generate with AI" to see your cover</p>
                 </div>
             </div>
+
+            {% if targets %}
+            <div style="margin-top: 1rem;">
+                <button class="btn btn-primary btn-lg" style="width: 100%;"
+                        hx-post="/api/cover-image/upload/{{ targets[0].id }}"
+                        hx-target="#upload-result"
+                        hx-swap="innerHTML"
+                        data-confirm="Upload this cover to {{ targets[0].playlist_name or targets[0].spotify_playlist_id }}?">
+                    Upload to Spotify
+                </button>
+            </div>
+            {% else %}
+            <div class="alert alert-warning" style="margin-top: 1rem;">
+                <a href="/targets">Add a target playlist</a> to upload covers.
+            </div>
+            {% endif %}
         </div>
         <div id="upload-result"></div>
     </div>
@@ -133,26 +124,4 @@
         {% endif %}
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-// Wire up preview image rendering — when the response is an image, show it as <img>
-document.body.addEventListener("htmx:afterRequest", function(evt) {
-    if (evt.detail.target && evt.detail.target.id === "preview-img") {
-        var xhr = evt.detail.xhr;
-        if (xhr && xhr.getResponseHeader("content-type") === "image/jpeg") {
-            var blob = new Blob([xhr.response], {type: "image/jpeg"});
-            var url = URL.createObjectURL(blob);
-            evt.detail.target.textContent = "";
-            var img = document.createElement("img");
-            img.src = url;
-            img.alt = "Cover preview";
-            img.style.maxWidth = "100%";
-            img.style.borderRadius = "8px";
-            evt.detail.target.appendChild(img);
-        }
-    }
-});
-</script>
 {% endblock %}

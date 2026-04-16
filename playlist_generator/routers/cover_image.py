@@ -1,12 +1,15 @@
+import base64
 import logging
+import os
+import tempfile
 from typing import Annotated
 
 import spotipy
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from PIL import Image
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.responses import HTMLResponse, Response, StreamingResponse
+from starlette.responses import HTMLResponse, Response
 
 from playlist_generator.database import get_db
 from playlist_generator.dependencies import get_current_user, get_spotify
@@ -19,6 +22,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/cover-image", tags=["cover-image"])
 
 templates: Jinja2Templates | None = None
+_PREVIEW_DIR = os.path.join(tempfile.gettempdir(), "playlist-cover-previews")
+os.makedirs(_PREVIEW_DIR, exist_ok=True)
 
 
 def set_templates(t: Jinja2Templates) -> None:
@@ -26,46 +31,66 @@ def set_templates(t: Jinja2Templates) -> None:
     templates = t
 
 
+def _save_preview(user_id: str, img: Image.Image) -> None:
+    """Save a preview image for later upload."""
+    img.save(os.path.join(_PREVIEW_DIR, f"{user_id}.png"), format="PNG")
+
+
+def _load_preview(user_id: str) -> Image.Image | None:
+    """Load a previously saved preview image."""
+    path = os.path.join(_PREVIEW_DIR, f"{user_id}.png")
+    if os.path.exists(path):
+        return Image.open(path).copy()
+    return None
+
+
+def _img_to_html(jpeg_bytes: bytes) -> str:
+    b64 = base64.b64encode(jpeg_bytes).decode()
+    return (
+        f'<img src="data:image/jpeg;base64,{b64}" alt="Cover preview" '
+        f'style="max-width:100%;border-radius:8px;">'
+    )
+
+
 @router.post("/preview")
 async def preview_image(
     text: Annotated[str, Form()],
+    user: Annotated[User, Depends(get_current_user)],
     bg_color: Annotated[str, Form()] = "#496D89",
     text_color: Annotated[str, Form()] = "#FFFF00",
     font_size: Annotated[int, Form()] = 120,
     font_name: Annotated[str, Form()] = "Roboto-Black.ttf",
-    user: User = Depends(get_current_user),
-) -> StreamingResponse:
-    """Generate a preview image and return it as JPEG."""
+) -> HTMLResponse:
+    """Generate a preview image, cache it, and return as HTML."""
     img = cover_service.generate_image(
         text=text,
         font_size=font_size,
         bg_color=bg_color,
         text_color=text_color,
         font_name=font_name,
-        width=600,  # Smaller for preview
-        height=600,
     )
-    jpeg_bytes = cover_service.image_to_jpeg_bytes(img)
-    from io import BytesIO
-
-    return StreamingResponse(BytesIO(jpeg_bytes), media_type="image/jpeg")
+    _save_preview(user.id, img)
+    # Show a smaller version for preview
+    preview = img.copy()
+    preview.thumbnail((600, 600))
+    return HTMLResponse(_img_to_html(cover_service.image_to_jpeg_bytes(preview)))
 
 
 @router.post("/preview-ai")
 async def preview_ai_image(
     prompt: Annotated[str, Form()],
-    user: User = Depends(get_current_user),
+    user: Annotated[User, Depends(get_current_user)],
 ) -> Response:
-    """Generate a preview image using OpenAI DALL-E."""
+    """Generate an AI preview image, cache it, and return as HTML."""
     img = await cover_service.generate_with_openai(prompt)
     if img is None:
         return HTMLResponse(
             '<div class="alert alert-warning">OpenAI not configured or generation failed</div>'
         )
-    jpeg_bytes = cover_service.image_to_jpeg_bytes(img)
-    from io import BytesIO
-
-    return StreamingResponse(BytesIO(jpeg_bytes), media_type="image/jpeg")
+    _save_preview(user.id, img)
+    preview = img.copy()
+    preview.thumbnail((600, 600))
+    return HTMLResponse(_img_to_html(cover_service.image_to_jpeg_bytes(preview)))
 
 
 @router.post("/upload/{target_id}")
@@ -74,32 +99,16 @@ async def upload_image(
     user: Annotated[User, Depends(get_current_user)],
     spotify: Annotated[spotipy.Spotify, Depends(get_spotify)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    text: Annotated[str, Form()] = "Generated Power",
-    bg_color: Annotated[str, Form()] = "#496D89",
-    text_color: Annotated[str, Form()] = "#FFFF00",
-    font_size: Annotated[int, Form()] = 120,
-    font_name: Annotated[str, Form()] = "Roboto-Black.ttf",
-    use_ai: Annotated[str, Form()] = "",
-    ai_prompt: Annotated[str, Form()] = "",
-    prompt: Annotated[str, Form()] = "",
 ) -> Response:
-    """Generate and upload a cover image to a Spotify playlist."""
+    """Upload the previously previewed cover image to Spotify."""
     target = await db.get(TargetPlaylist, target_id)
     if not target or target.user_id != user.id:
         return HTMLResponse('<div class="alert alert-danger">Invalid target</div>')
 
-    ai_text = ai_prompt or prompt  # form sends either field name
-    if use_ai and ai_text:
-        img = await cover_service.generate_with_openai(ai_text)
-        if img is None:
-            return HTMLResponse('<div class="alert alert-warning">AI generation failed, using text fallback</div>')
-    else:
-        img = cover_service.generate_image(
-            text=text,
-            font_size=font_size,
-            bg_color=bg_color,
-            text_color=text_color,
-            font_name=font_name,
+    img = _load_preview(user.id)
+    if img is None:
+        return HTMLResponse(
+            '<div class="alert alert-warning">No preview found. Generate a preview first.</div>'
         )
 
     await cover_service.upload_to_spotify(target.spotify_playlist_id, img, spotify)
