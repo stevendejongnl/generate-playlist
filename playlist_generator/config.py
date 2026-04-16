@@ -21,7 +21,9 @@ class Settings(BaseSettings):
         "playlist-modify-public "
         "playlist-read-private "
         "playlist-modify-private "
-        "user-library-read"
+        "user-library-read "
+        "user-read-recently-played "
+        "user-read-currently-playing"
     )
 
     # Optional: OpenAI for enhanced features (cover art, smart discovery, name generation)

@@ -1,0 +1,20 @@
+{% if played %}
+{% for t in played %}
+<div class="browse-item">
+    <div class="browse-info">
+        <div class="browse-title">{{ t.name }}</div>
+        <div class="browse-subtitle">
+            {{ t.artist }} &middot;
+            <span class="text-dim">{{ t.played_at[:16] | replace('T', ' ') }}</span>
+        </div>
+    </div>
+    <span class="text-muted text-small">
+        {{ (t.duration_ms // 60000) }}:{{ "%02d" | format((t.duration_ms % 60000) // 1000) }}
+    </span>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+    <p>No recent play history.</p>
+</div>
+{% endif %}

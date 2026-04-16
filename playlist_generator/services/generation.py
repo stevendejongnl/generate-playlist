@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from playlist_generator.models.base_list import BaseTrack, BasePlaylist
 from playlist_generator.models.blacklist import BlacklistTrack, BlacklistPlaylist
-from playlist_generator.models.history import GenerationHistory
+from playlist_generator.models.history import GenerationHistory, GenerationHistoryTrack
 
 logger = logging.getLogger(__name__)
 
@@ -280,7 +280,7 @@ async def execute(
             spotify.playlist_add_items, target_playlist_id, chunk
         )
 
-    # Record history
+    # Record history with individual tracks
     history = GenerationHistory(
         user_id=user_id,
         target_playlist_id=target_playlist_id,
@@ -294,6 +294,18 @@ async def execute(
         discovery_value=discovery_value,
     )
     db.add(history)
+    await db.flush()  # get the history.id
+
+    for i, track in enumerate(result.tracks):
+        db.add(GenerationHistoryTrack(
+            generation_id=history.id,
+            spotify_track_id=track.spotify_id,
+            track_name=track.name,
+            artist_name=track.artist,
+            duration_ms=track.duration_ms,
+            is_discovery=1 if track.is_discovery else 0,
+            position=i,
+        ))
     await db.commit()
 
     return result

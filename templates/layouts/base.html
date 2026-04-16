@@ -17,6 +17,7 @@
             <a href="/targets" {% if request.url.path == '/targets' %}class="active"{% endif %}>Targets</a>
             <a href="/generate" {% if request.url.path == '/generate' %}class="active"{% endif %}>Generate</a>
             <a href="/cover-image" {% if request.url.path == '/cover-image' %}class="active"{% endif %}>Cover</a>
+            <a href="/skips" {% if request.url.path == '/skips' %}class="active"{% endif %}>Skips</a>
             <a href="/profile" {% if request.url.path == '/profile' %}class="active"{% endif %}>{{ user.display_name or 'Profile' }}</a>
         </nav>
         {% endif %}

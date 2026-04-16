@@ -17,6 +17,7 @@ from playlist_generator.models.history import GenerationHistory
 from playlist_generator.services import base_list as base_list_service
 from playlist_generator.services import blacklist as blacklist_service
 from playlist_generator.services import cover_image as cover_service
+from playlist_generator.services import skips as skips_service
 
 logger = logging.getLogger(__name__)
 
@@ -164,4 +165,15 @@ async def cover_image_page(
             "targets": targets,
             "has_openai": bool(settings.OPENAI_API_KEY),
         },
+    )
+
+
+@router.get("/skips")
+async def skips_page(
+    request: Request,
+    user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    assert templates is not None
+    return templates.TemplateResponse(
+        request, "pages/skips.html", {"user": user}
     )

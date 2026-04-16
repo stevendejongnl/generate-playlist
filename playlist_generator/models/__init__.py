@@ -3,7 +3,7 @@ from playlist_generator.models.base_list import BaseTrack, BasePlaylist
 from playlist_generator.models.blacklist import BlacklistTrack, BlacklistPlaylist
 from playlist_generator.models.target import TargetPlaylist
 from playlist_generator.models.cover_image import CoverImageConfig
-from playlist_generator.models.history import GenerationHistory
+from playlist_generator.models.history import GenerationHistory, GenerationHistoryTrack
 
 __all__ = [
     "User",
@@ -14,4 +14,5 @@ __all__ = [
     "TargetPlaylist",
     "CoverImageConfig",
     "GenerationHistory",
+    "GenerationHistoryTrack",
 ]
