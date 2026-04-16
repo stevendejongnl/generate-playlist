@@ -1,3 +1,8 @@
+{% if stats %}
+<p class="text-muted text-small" style="margin-bottom: 0.75rem;">
+    Showing {{ played | length }} of {{ stats.total_plays }} tracked plays.
+</p>
+{% endif %}
 {% if played %}
 {% for t in played %}
 <div class="browse-item" {% if t.was_skipped %}style="border-left: 2px solid var(--danger);"{% endif %}>

@@ -1,7 +1,9 @@
-{% if skipped %}
+{% if stats %}
 <p class="text-muted text-small" style="margin-bottom: 0.75rem;">
-    {{ skipped | length }} track{{ 's' if skipped | length != 1 }} detected as skipped in your recent listening.
+    {{ stats.total_plays }} plays tracked, {{ stats.total_skips }} skips detected.
 </p>
+{% endif %}
+{% if skipped %}
 {% for tid, s in skipped.items() %}
 <div class="browse-item">
     <div class="browse-info">

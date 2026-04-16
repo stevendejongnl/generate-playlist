@@ -4,6 +4,7 @@ from playlist_generator.models.blacklist import BlacklistTrack, BlacklistPlaylis
 from playlist_generator.models.target import TargetPlaylist
 from playlist_generator.models.cover_image import CoverImageConfig
 from playlist_generator.models.history import GenerationHistory, GenerationHistoryTrack
+from playlist_generator.models.track_cache import TrackCache, PlayHistory
 
 __all__ = [
     "User",
@@ -15,4 +16,6 @@ __all__ = [
     "CoverImageConfig",
     "GenerationHistory",
     "GenerationHistoryTrack",
+    "TrackCache",
+    "PlayHistory",
 ]
