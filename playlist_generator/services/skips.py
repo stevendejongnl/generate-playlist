@@ -71,19 +71,26 @@ async def sync_play_history(
 ) -> int:
     """Fetch recent plays from Spotify and persist new ones to the database.
 
-    Returns the number of new plays added.
+    Paginates backwards through history using the oldest played_at timestamp
+    from each batch. Returns the number of new plays added.
     """
     new_count = 0
-    before_ts: int | None = None
+    before_ms: int | None = None
 
-    for _ in range(pages):
-        kwargs: dict = {"limit": 50}
-        if before_ts:
-            kwargs["before"] = before_ts
+    for page in range(pages):
+        try:
+            if before_ms:
+                results = await asyncio.to_thread(
+                    spotify.current_user_recently_played, limit=50, before=before_ms
+                )
+            else:
+                results = await asyncio.to_thread(
+                    spotify.current_user_recently_played, limit=50
+                )
+        except Exception:
+            logger.warning("Failed to fetch play history page %d", page)
+            break
 
-        results = await asyncio.to_thread(
-            spotify.current_user_recently_played, **kwargs
-        )
         items = results.get("items", [])
         if not items:
             break
@@ -107,13 +114,16 @@ async def sync_play_history(
                 "duration_ms": t.get("duration_ms", 0),
             })
 
+        if not raw:
+            break
+
         # Reverse to chronological for duration calculation
         raw.reverse()
         raw = _calculate_play_durations(raw)
 
         # Persist new entries
+        page_new = 0
         for entry in raw:
-            # Check if we already have this play
             existing = await db.execute(
                 select(PlayHistory).where(
                     PlayHistory.user_id == user_id,
@@ -132,18 +142,26 @@ async def sync_play_history(
                 play_percentage=entry["play_percentage"],
                 was_skipped=1 if entry["was_skipped"] else 0,
             ))
-            new_count += 1
+            page_new += 1
 
+        new_count += page_new
         await db.commit()
 
-        # Get cursor for next page (oldest timestamp in this batch)
-        cursors = results.get("cursors")
-        if cursors and cursors.get("before"):
-            before_ts = int(cursors["before"])
-        else:
+        # Use the oldest played_at from this batch as the cursor for the next page
+        # raw is chronological (oldest first), so raw[0] is the oldest
+        oldest_played_at = raw[0]["played_at"]
+        try:
+            oldest_dt = datetime.fromisoformat(oldest_played_at.replace("Z", "+00:00"))
+            before_ms = int(oldest_dt.timestamp() * 1000)
+        except (ValueError, TypeError):
             break
 
-    logger.info("Synced %d new plays for user %s", new_count, user_id)
+        # If this page had no new entries and we're past page 1, we've caught up
+        if page_new == 0 and page > 0:
+            logger.info("No new plays on page %d, stopping", page)
+            break
+
+    logger.info("Synced %d new plays for user %s across %d pages", new_count, user_id, page + 1)
     return new_count
 
 
