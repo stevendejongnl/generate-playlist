@@ -139,6 +139,16 @@ h3 { font-size: 1rem; color: var(--text-muted); margin: 0 0 0.75rem; font-weight
 }
 .btn-spotify:hover { background: var(--primary-dark); transform: translateY(-1px); }
 
+/* Ensure button styling wins over link defaults */
+a.btn, a.btn:visited, a.btn:hover, a.btn:active {
+    color: inherit;
+    text-decoration: none;
+}
+a.btn-primary, a.btn-primary:visited { color: #fff; }
+a.btn-spotify, a.btn-spotify:visited { color: #fff; }
+a.btn-danger, a.btn-danger:visited { color: var(--danger); }
+a.btn-danger:hover { color: #fff; }
+
 /* ── Forms ──────────────────────────────────────────── */
 
 .form-group { margin-bottom: 1rem; }

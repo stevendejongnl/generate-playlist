@@ -22,9 +22,11 @@
         {% endif %}
     </header>
 
+    {% block body %}
     <div class="container">
         {% block content %}{% endblock %}
     </div>
+    {% endblock %}
 
     <footer>&copy; 2025 Playlist Generator</footer>
 
