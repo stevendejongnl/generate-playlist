@@ -1,0 +1,34 @@
+{% extends "layouts/base.html" %}
+{% block title %}Targets — {% endblock %}
+
+{% block content %}
+<h1>Target Playlists</h1>
+<p class="text-muted" style="margin-bottom: 1.5rem;">Choose which Spotify playlist your generated mix will be written to.</p>
+
+<div class="card">
+    <form class="form-inline"
+          hx-post="/api/targets"
+          hx-target="#target-list"
+          hx-swap="afterbegin"
+          hx-on::after-request="if(event.detail.successful) this.reset()">
+        <div class="form-group">
+            <label for="target-input">Add target playlist</label>
+            <input type="text" id="target-input" name="value" class="form-input"
+                   placeholder="Spotify playlist URL or ID" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+
+    <div id="target-list">
+        {% for item in targets %}
+        {% include "partials/target_row.html" %}
+        {% endfor %}
+        {% if not targets %}
+        <div class="empty-state">
+            <p>No target playlists yet.</p>
+            <p class="text-small">Add a Spotify playlist above to use as your generation target.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

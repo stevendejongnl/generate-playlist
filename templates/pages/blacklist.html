@@ -1,0 +1,67 @@
+{% extends "layouts/base.html" %}
+{% block title %}Blacklist — {% endblock %}
+
+{% block content %}
+<h1>Blacklist</h1>
+<p class="text-muted" style="margin-bottom: 1.5rem;">Tracks and playlists here will never appear in your generated mix.</p>
+
+<!-- Block Track -->
+<div class="card">
+    <h2>Blocked Tracks</h2>
+    <form class="form-inline"
+          hx-post="/api/blacklist/tracks"
+          hx-target="#blacklist-track-list"
+          hx-swap="afterbegin"
+          hx-on::after-request="if(event.detail.successful) this.reset()">
+        <div class="form-group">
+            <label for="bl-track-input">Block track</label>
+            <input type="text" id="bl-track-input" name="value" class="form-input"
+                   placeholder="Spotify track URL or ID" required>
+        </div>
+        <button type="submit" class="btn btn-danger">Block</button>
+    </form>
+
+    <div id="blacklist-track-list">
+        {% for item in tracks %}
+        {% with delete_url="/api/blacklist/tracks/" + item.id %}
+        {% include "partials/track_row.html" %}
+        {% endwith %}
+        {% endfor %}
+        {% if not tracks %}
+        <div class="empty-state">
+            <p>No blocked tracks.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Block Playlist -->
+<div class="card">
+    <h2>Blocked Playlists</h2>
+    <form class="form-inline"
+          hx-post="/api/blacklist/playlists"
+          hx-target="#blacklist-playlist-list"
+          hx-swap="afterbegin"
+          hx-on::after-request="if(event.detail.successful) this.reset()">
+        <div class="form-group">
+            <label for="bl-playlist-input">Block playlist</label>
+            <input type="text" id="bl-playlist-input" name="value" class="form-input"
+                   placeholder="Spotify playlist URL or ID" required>
+        </div>
+        <button type="submit" class="btn btn-danger">Block</button>
+    </form>
+
+    <div id="blacklist-playlist-list">
+        {% for item in playlists %}
+        {% with delete_url="/api/blacklist/playlists/" + item.id %}
+        {% include "partials/playlist_row.html" %}
+        {% endwith %}
+        {% endfor %}
+        {% if not playlists %}
+        <div class="empty-state">
+            <p>No blocked playlists.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -3,7 +3,10 @@
 data
 __pycache__
 .idea/
-deployment.yaml
+deployment.local.yaml
 node_modules/
 .coverage
 *.jpg
+.flask_session/
+.pytest_cache/
+static/js/app.iife.js.map

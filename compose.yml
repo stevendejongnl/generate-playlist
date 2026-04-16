@@ -7,4 +7,3 @@ services:
       - stack.env
     volumes:
       - ./data:/app/data
-      - ./.cache:/app/.cache

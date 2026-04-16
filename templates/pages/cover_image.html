@@ -1,0 +1,158 @@
+{% extends "layouts/base.html" %}
+{% block title %}Cover Art — {% endblock %}
+
+{% block content %}
+<h1>Cover Art</h1>
+<p class="text-muted" style="margin-bottom: 1.5rem;">Design a cover image and upload it to your Spotify playlist.</p>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <!-- Config form -->
+    <div class="card">
+        <h2>Text-Based Cover</h2>
+        <form id="cover-form">
+            <div class="form-group">
+                <label for="cover-text">Display text</label>
+                <input type="text" id="cover-text" name="text" class="form-input"
+                       value="Generated Power" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                    <label for="bg-color">Background</label>
+                    <input type="color" id="bg-color" name="bg_color" value="#496D89"
+                           class="form-input" style="height: 40px; padding: 2px;">
+                </div>
+                <div class="form-group">
+                    <label for="text-color">Text color</label>
+                    <input type="color" id="text-color" name="text_color" value="#FFFF00"
+                           class="form-input" style="height: 40px; padding: 2px;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="font-size">Font size</label>
+                <input type="range" id="font-size" name="font_size" min="40" max="200" value="120"
+                       class="form-input" style="padding: 0;"
+                       oninput="document.getElementById('fs-val').textContent = this.value">
+                <span class="text-muted text-small" id="fs-val">120</span>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary"
+                        hx-post="/api/cover-image/preview"
+                        hx-include="#cover-form"
+                        hx-target="#preview-img"
+                        hx-swap="innerHTML">
+                    Preview
+                </button>
+                {% if targets %}
+                <button type="button" class="btn btn-primary"
+                        hx-post="/api/cover-image/upload/{{ targets[0].id }}"
+                        hx-include="#cover-form"
+                        hx-target="#upload-result"
+                        hx-swap="innerHTML"
+                        data-confirm="Upload cover image?">
+                    Upload to Spotify
+                </button>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if has_openai %}
+        <hr style="border-color: var(--surface-border); margin: 1.5rem 0;">
+        <h2>AI-Generated Cover</h2>
+        <form id="ai-form">
+            <div class="form-group">
+                <label for="ai-prompt">Describe your cover</label>
+                <input type="text" id="ai-prompt" name="prompt" class="form-input"
+                       placeholder="e.g. dreamy synthwave sunset, neon pink and blue">
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary"
+                        hx-post="/api/cover-image/preview-ai"
+                        hx-include="#ai-form"
+                        hx-target="#preview-img"
+                        hx-swap="innerHTML">
+                    Generate with AI
+                </button>
+                {% if targets %}
+                <button type="button" class="btn btn-primary"
+                        hx-post="/api/cover-image/upload/{{ targets[0].id }}"
+                        hx-include="#ai-form"
+                        hx-vals='{"use_ai": "1", "text": ""}'
+                        hx-target="#upload-result"
+                        hx-swap="innerHTML"
+                        data-confirm="Generate and upload AI cover?">
+                    AI Upload
+                </button>
+                {% endif %}
+            </div>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Preview area -->
+    <div>
+        <div class="card" style="text-align: center;">
+            <h3>Preview</h3>
+            <div id="preview-img">
+                <div class="empty-state">
+                    <p>Click "Preview" to see your cover</p>
+                </div>
+            </div>
+        </div>
+        <div id="upload-result"></div>
+    </div>
+</div>
+
+<!-- Saved presets -->
+<div class="card" style="margin-top: 1.5rem;">
+    <h2>Saved Presets</h2>
+    <form class="form-inline" style="margin-bottom: 1rem;"
+          hx-post="/api/cover-image/configs"
+          hx-include="#cover-form"
+          hx-target="#config-list"
+          hx-swap="afterbegin"
+          hx-on::after-request="if(event.detail.successful) this.querySelector('input').value=''">
+        <div class="form-group">
+            <label for="preset-name">Preset name</label>
+            <input type="text" id="preset-name" name="name" class="form-input"
+                   placeholder="My preset" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+
+    <div id="config-list">
+        {% for config in configs %}
+        {% include "partials/cover_config_row.html" %}
+        {% endfor %}
+        {% if not configs %}
+        <div class="empty-state">
+            <p>No saved presets.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Wire up preview image rendering — when the response is an image, show it as <img>
+document.body.addEventListener("htmx:afterRequest", function(evt) {
+    if (evt.detail.target && evt.detail.target.id === "preview-img") {
+        var xhr = evt.detail.xhr;
+        if (xhr && xhr.getResponseHeader("content-type") === "image/jpeg") {
+            var blob = new Blob([xhr.response], {type: "image/jpeg"});
+            var url = URL.createObjectURL(blob);
+            evt.detail.target.textContent = "";
+            var img = document.createElement("img");
+            img.src = url;
+            img.alt = "Cover preview";
+            img.style.maxWidth = "100%";
+            img.style.borderRadius = "8px";
+            evt.detail.target.appendChild(img);
+        }
+    }
+});
+</script>
+{% endblock %}

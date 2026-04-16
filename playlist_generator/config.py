@@ -1,16 +1,31 @@
-import os
-from dotenv import load_dotenv
-from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Config:
-    basedir: str = os.path.abspath(os.path.dirname(__file__))
-    env_path = os.path.join(os.path.dirname(basedir), '.env')
-    if os.path.exists(env_path):
-        load_dotenv(env_path)
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
-    SPOTIPY_CLIENT_ID: Optional[str] = os.getenv('SPOTIPY_CLIENT_ID')
-    SPOTIPY_CLIENT_SECRET: Optional[str] = os.getenv('SPOTIPY_CLIENT_SECRET')
-    SPOTIPY_REDIRECT_URI: Optional[str] = os.getenv('SPOTIPY_REDIRECT_URI')
-    SPOTIPY_CACHE_PATH: str = os.getenv('SPOTIPY_CACHE_PATH', '.cache')
-    SECRET_KEY: str = os.getenv('SECRET_KEY', 'spotify-likes-to-playlist-yo')
+    DATABASE_URL: str = "sqlite+aiosqlite:///./data/playlist_generator.db"
+    SECRET_KEY: str = "change-me-in-production"
+    ENCRYPTION_KEY: str = "change-me-generate-with-fernet"
+
+    SPOTIFY_CLIENT_ID: str = ""
+    SPOTIFY_CLIENT_SECRET: str = ""
+    SPOTIFY_REDIRECT_URI: str = "http://localhost:5000/callback"
+    SPOTIFY_SCOPES: str = (
+        "ugc-image-upload "
+        "playlist-read-collaborative "
+        "playlist-modify-public "
+        "playlist-read-private "
+        "playlist-modify-private "
+        "user-library-read"
+    )
+
+    # Optional: OpenAI for enhanced features (cover art, smart discovery, name generation)
+    OPENAI_API_KEY: str = ""
+
+
+settings = Settings()

@@ -2,26 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{% block title %}{% endblock %}Playlist generator</title>
-    {% block head_styles %}{% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}Playlist Generator</title>
     <link rel="stylesheet" href="/static/styles/app.css">
+    {% block head %}{% endblock %}
 </head>
 <body>
-<header>
-    <h1>Playlist Generator</h1>
-    <nav>
-        <a href="/" class="home-link">&#8962; Home</a>
-    </nav>
-</header>
-<div class="container">
-    {% block content %}{% endblock %}
-</div>
-<footer>
-    &copy; 2025 - Powered by me, Just me..
-</footer>
-{% block body_scripts %}{% endblock %}
+    <header class="app-header">
+        <a href="/" class="logo">Playlist Generator</a>
+        {% if user %}
+        <nav>
+            <a href="/base-list" {% if request.url.path == '/base-list' %}class="active"{% endif %}>Sources</a>
+            <a href="/blacklist" {% if request.url.path == '/blacklist' %}class="active"{% endif %}>Blacklist</a>
+            <a href="/targets" {% if request.url.path == '/targets' %}class="active"{% endif %}>Targets</a>
+            <a href="/generate" {% if request.url.path == '/generate' %}class="active"{% endif %}>Generate</a>
+            <a href="/cover-image" {% if request.url.path == '/cover-image' %}class="active"{% endif %}>Cover</a>
+            <a href="/profile" {% if request.url.path == '/profile' %}class="active"{% endif %}>{{ user.display_name or 'Profile' }}</a>
+        </nav>
+        {% endif %}
+    </header>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>&copy; 2025 Playlist Generator</footer>
+
+    <script src="/static/js/app.iife.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

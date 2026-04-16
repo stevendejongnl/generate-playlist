@@ -1,0 +1,40 @@
+{% extends "layouts/base.html" %}
+{% block title %}Dashboard — {% endblock %}
+
+{% block content %}
+<h1>Welcome back, {{ user.display_name or 'there' }}</h1>
+<p class="text-muted" style="margin-bottom: 1.5rem;">What do you want to do?</p>
+
+<div class="dash-grid">
+    <a href="/base-list" class="dash-card">
+        <span class="dash-card-icon">&#9835;</span>
+        <span class="dash-card-title">Sources</span>
+        <span class="dash-card-desc">Manage tracks and playlists that feed your mix</span>
+    </a>
+    <a href="/blacklist" class="dash-card">
+        <span class="dash-card-icon">&#10005;</span>
+        <span class="dash-card-title">Blacklist</span>
+        <span class="dash-card-desc">Block tracks or playlists you never want included</span>
+    </a>
+    <a href="/targets" class="dash-card">
+        <span class="dash-card-icon">&#9654;</span>
+        <span class="dash-card-title">Targets</span>
+        <span class="dash-card-desc">Choose which Spotify playlist to write to</span>
+    </a>
+    <a href="/generate" class="dash-card">
+        <span class="dash-card-icon">&#9889;</span>
+        <span class="dash-card-title">Generate</span>
+        <span class="dash-card-desc">Build and push a playlist with your settings</span>
+    </a>
+    <a href="/cover-image" class="dash-card">
+        <span class="dash-card-icon">&#9733;</span>
+        <span class="dash-card-title">Cover Art</span>
+        <span class="dash-card-desc">Design and upload a playlist cover image</span>
+    </a>
+    <a href="/history" class="dash-card">
+        <span class="dash-card-icon">&#8634;</span>
+        <span class="dash-card-title">History</span>
+        <span class="dash-card-desc">See past generations and their stats</span>
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+{% block title %}History — {% endblock %}
+
+{% block content %}
+<h1>Generation History</h1>
+<p class="text-muted" style="margin-bottom: 1.5rem;">Past playlist generations and their stats.</p>
+
+<div class="card">
+    {% if history %}
+    {% for h in history %}
+    <div class="list-item">
+        <div class="list-item-info">
+            <div class="list-item-title">
+                {{ h.target_playlist_name or h.target_playlist_id }}
+            </div>
+            <div class="list-item-subtitle">
+                {{ h.track_count }} tracks
+                {% if h.total_duration_ms %} &middot; {{ (h.total_duration_ms // 60000) }} min{% endif %}
+                {% if h.discovery_count %} &middot; {{ h.discovery_count }} discovery{% endif %}
+                {% if h.max_tracks_param %} &middot; max {{ h.max_tracks_param }} tracks{% endif %}
+                {% if h.max_minutes_param %} &middot; max {{ h.max_minutes_param }} min{% endif %}
+                {% if h.discovery_mode %} &middot; {{ h.discovery_mode }} {{ h.discovery_value }}{% if h.discovery_mode == 'percentage' %}%{% endif %}{% endif %}
+            </div>
+        </div>
+        <span class="text-muted text-small">
+            {{ h.created_at | timestamp }}
+        </span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <p>No generations yet.</p>
+        <p class="text-small"><a href="/generate">Generate your first playlist</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

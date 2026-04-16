@@ -1,0 +1,37 @@
+<div class="card" style="margin-top: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h2 style="margin: 0;">Preview</h2>
+            <p class="text-muted text-small" style="margin: 0.25rem 0 0;">
+                {{ track_count }} tracks &middot; {{ total_duration }}
+                {% if discovery_count %} &middot; {{ discovery_count }} discovery{% endif %}
+            </p>
+        </div>
+        <form hx-post="/api/generate/execute"
+              hx-target="#generation-result"
+              hx-swap="innerHTML">
+            <input type="hidden" name="target_id" value="{{ target_id }}">
+            <button type="submit" class="btn btn-primary btn-lg"
+                    data-confirm="Write {{ track_count }} tracks to {{ target_name }}?">
+                Push to Spotify
+            </button>
+        </form>
+    </div>
+
+    <div style="max-height: 400px; overflow-y: auto;">
+        {% for track in tracks %}
+        <div class="list-item" style="padding: 0.5rem 0.75rem;">
+            <div class="list-item-info">
+                <div class="list-item-title" style="font-size: 0.9rem;">
+                    {{ track.name }}
+                    {% if track.is_discovery %}<span class="badge badge-accent">Discovery</span>{% endif %}
+                </div>
+                <div class="list-item-subtitle">{{ track.artist }}</div>
+            </div>
+            <span class="text-dim text-small">
+                {{ (track.duration_ms // 60000) }}:{{ "%02d" | format((track.duration_ms % 60000) // 1000) }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,18 @@
+<div class="list-item" id="track-{{ item.id }}">
+    <div class="list-item-info">
+        <div class="list-item-title">{{ item.track_name or item.spotify_track_id }}</div>
+        <div class="list-item-subtitle">
+            {% if item.artist_name %}{{ item.artist_name }} &middot; {% endif %}
+            <span class="text-dim">{{ item.spotify_track_id }}</span>
+        </div>
+    </div>
+    <div class="list-item-actions">
+        <button class="btn btn-danger btn-ghost"
+                hx-delete="{{ delete_url }}"
+                hx-target="#track-{{ item.id }}"
+                hx-swap="outerHTML"
+                data-confirm="Remove this track?">
+            &times;
+        </button>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+{% for item in targets %}
+<div class="list-item" id="target-{{ item.id }}">
+    <div class="list-item-info">
+        <div class="list-item-title">
+            {{ item.playlist_name or item.spotify_playlist_id }}
+            {% if item.is_default %}<span class="badge badge-primary">Default</span>{% endif %}
+        </div>
+        <div class="list-item-subtitle">
+            <span class="text-dim">{{ item.spotify_playlist_id }}</span>
+        </div>
+    </div>
+    <div class="list-item-actions">
+        {% if not item.is_default %}
+        <button class="btn btn-secondary btn-ghost"
+                hx-patch="/api/targets/{{ item.id }}/default"
+                hx-target="#target-list"
+                hx-swap="innerHTML">
+            Set default
+        </button>
+        {% endif %}
+        <button class="btn btn-danger btn-ghost"
+                hx-delete="/api/targets/{{ item.id }}"
+                hx-target="#target-{{ item.id }}"
+                hx-swap="outerHTML"
+                data-confirm="Remove this target?">
+            &times;
+        </button>
+    </div>
+</div>
+{% endfor %}
+{% if not targets %}
+<div class="empty-state">
+    <p>No target playlists yet.</p>
+    <p class="text-small">Add a Spotify playlist above to use as your generation target.</p>
+</div>
+{% endif %}

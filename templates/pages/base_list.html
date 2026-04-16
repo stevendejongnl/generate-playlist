@@ -1,0 +1,67 @@
+{% extends "layouts/base.html" %}
+{% block title %}Sources — {% endblock %}
+
+{% block content %}
+<h1>Source Tracks &amp; Playlists</h1>
+<p class="text-muted" style="margin-bottom: 1.5rem;">These are the tracks and playlists that feed your generated mix.</p>
+
+<!-- Add Track -->
+<div class="card">
+    <h2>Tracks</h2>
+    <form class="form-inline"
+          hx-post="/api/base-list/tracks"
+          hx-target="#track-list"
+          hx-swap="afterbegin"
+          hx-on::after-request="if(event.detail.successful) this.reset()">
+        <div class="form-group">
+            <label for="track-input">Add track</label>
+            <input type="text" id="track-input" name="value" class="form-input"
+                   placeholder="Spotify track URL or ID" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+
+    <div id="track-list">
+        {% for item in tracks %}
+        {% with delete_url="/api/base-list/tracks/" + item.id %}
+        {% include "partials/track_row.html" %}
+        {% endwith %}
+        {% endfor %}
+        {% if not tracks %}
+        <div class="empty-state">
+            <p>No tracks added yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Playlist -->
+<div class="card">
+    <h2>Playlists</h2>
+    <form class="form-inline"
+          hx-post="/api/base-list/playlists"
+          hx-target="#playlist-list"
+          hx-swap="afterbegin"
+          hx-on::after-request="if(event.detail.successful) this.reset()">
+        <div class="form-group">
+            <label for="playlist-input">Add playlist</label>
+            <input type="text" id="playlist-input" name="value" class="form-input"
+                   placeholder="Spotify playlist URL or ID" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+
+    <div id="playlist-list">
+        {% for item in playlists %}
+        {% with delete_url="/api/base-list/playlists/" + item.id %}
+        {% include "partials/playlist_row.html" %}
+        {% endwith %}
+        {% endfor %}
+        {% if not playlists %}
+        <div class="empty-state">
+            <p>No playlists added yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

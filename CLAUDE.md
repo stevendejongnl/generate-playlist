@@ -1,56 +1,106 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
 ## Commands
 
 ```bash
 # Install dependencies
-uv sync
+uv sync              # Python
+npm install          # Frontend (TypeScript)
 
-# Run locally (Flask dev server on port 5000)
-uv run python -m playlist_generator.main
+# Run locally (port 5000)
+uv run uvicorn playlist_generator.main:app --host 0.0.0.0 --port 5000 --reload
 
-# Docker build and run
-make docker-build
-make docker-run
+# Build frontend
+npm run build        # Production bundle → static/js/app.iife.js
+npm run dev          # Watch mode
 
-# Docker Compose (port 5888)
-docker-compose up -d
+# Tests
+uv run pytest        # Python tests (54 tests, async)
+npm test             # TypeScript tests (6 tests, vitest)
+npm run typecheck    # TypeScript type checking
+
+# Database migrations
+uv run alembic upgrade head          # Apply migrations
+uv run alembic revision --autogenerate -m "description"  # Create new migration
+
+# Docker
+docker-compose up -d                 # Port 5888
 ```
-
-No test or lint commands are configured. Type hints exist throughout but are not checked by tooling.
 
 ## Environment
 
-Copy `deployment.yaml.example` → `deployment.yaml` and fill in credentials, or create `.env`:
+Create `.env` in the project root:
 
 ```
-SPOTIPY_CLIENT_ID=...
-SPOTIPY_CLIENT_SECRET=...
-SPOTIPY_REDIRECT_URI=http://localhost:5000/authenticate
-PLAYLIST_ID=...
+SPOTIFY_CLIENT_ID=...
+SPOTIFY_CLIENT_SECRET=...
+SPOTIFY_REDIRECT_URI=http://localhost:5000/callback
+SECRET_KEY=...                          # Session signing key
+ENCRYPTION_KEY=...                      # Fernet key (generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+DATABASE_URL=sqlite+aiosqlite:///./data/playlist_generator.db
+OPENAI_API_KEY=...                      # Optional: for AI cover art and smart discovery
 ```
 
 ## Architecture
 
-Flask app that authenticates with Spotify via OAuth and builds a playlist from multiple sources.
+Multi-user FastAPI app. Spotify OAuth is the account system (no passwords). Data stored in SQLite via async SQLAlchemy.
 
-### Core modules (`playlist_generator/`)
+### Project Structure
 
-- **`main.py`** — Flask app entry point. Defines routes (`/`, `/authenticate`, `/actions/<action_type>`, `/sign_out`), session config (filesystem-based, `.flask_session/`), and `@login_required` decorator.
-- **`spotify_functions.py`** — `SpotifyManager` class. Handles OAuth, playlist building, and cover image generation. Playlist build logic: collects tracks from liked songs (max 30) + 4 hardcoded source playlists, deduplicates, removes blacklisted tracks, shuffles, then replaces target playlist contents (in chunks of 100 per Spotify API limit).
-- **`blacklist.py`** — `BlacklistManager` class. Persists excluded track IDs to `data/blacklist.json`.
-- **`config.py`** — Loads `.env` and exposes Spotify credentials, playlist ID, and cache path.
+```
+playlist_generator/
+    main.py              — App factory, lifespan, middleware, router mounts
+    config.py            — pydantic-settings config from .env
+    database.py          — Async SQLAlchemy engine + session factory
+    encryption.py        — Fernet encrypt/decrypt for Spotify tokens
+    dependencies.py      — FastAPI Depends: get_db, get_current_user, get_spotify
+    models/              — SQLAlchemy ORM models (8 tables)
+    schemas/             — Pydantic request/response schemas
+    services/            — Business logic (no HTTP concerns)
+        spotify_auth.py  — OAuth flow, token refresh, client factory
+        base_list.py     — Source tracks/playlists CRUD
+        blacklist.py     — Blocked tracks/playlists CRUD
+        generation.py    — Core: collect → filter → discover → limit → write
+        cover_image.py   — PIL image gen + OpenAI DALL-E (optional)
+    routers/             — HTTP route handlers
+        auth.py          — /login, /callback, /logout
+        pages.py         — SSR page routes (Jinja2)
+        base_list.py     — CRUD API (HTMX partials)
+        blacklist.py     — CRUD API (HTMX partials)
+        targets.py       — CRUD API (HTMX partials)
+        generation.py    — Preview + execute endpoints
+        cover_image.py   — Image preview/upload + config CRUD
 
-### Persistence
+frontend/src/            — TypeScript source (Vite build)
+    main.ts              — Entry point
+    htmx-setup.ts        — HTMX configuration
+    flash.ts             — Auto-dismiss alert messages
+    confirm.ts           — Confirm dialogs for destructive actions
 
-| Path | Contents |
-|------|----------|
-| `data/blacklist.json` | Blacklisted track IDs |
-| `.cache/` | Spotify OAuth token cache |
-| `.flask_session/` | Server-side session files |
+templates/               — Jinja2 templates
+    layouts/base.html    — Dark theme shell with nav
+    pages/               — Full page templates (9 pages)
+    partials/            — HTMX fragment templates
+
+static/                  — CSS, built JS, fonts
+alembic/                 — Database migrations
+tests/                   — pytest (async) + vitest
+```
+
+### Key Patterns
+
+- **Auth**: Spotify OAuth → session cookie. User created on first login.
+- **Tokens**: Fernet-encrypted in SQLite. Auto-refreshed via `get_spotify` dependency.
+- **HTMX**: API routes return HTML partials, swapped into the page without full reload.
+- **Async bridge**: `asyncio.to_thread()` wraps synchronous spotipy calls.
+- **Generation**: collect base tracks → blacklist filter → discovery → shuffle → limits → write.
+
+### Database
+
+SQLite at `data/playlist_generator.db`. 8 tables: users, base_tracks, base_playlists, blacklist_tracks, blacklist_playlists, target_playlists, cover_image_configs, generation_history.
 
 ### CI/CD
 
-GitHub Actions (`.github/workflows/deploy.yml`) builds and pushes Docker image to `ghcr.io/stevendejongnl/generate-playlist` on every push to `master`. Deploy by applying `deployment.yaml` to the Kubernetes cluster (NGINX ingress at `spotify.madebysteven.nl`).
+GitHub Actions: semantic-release → Docker build → push to ghcr.io. Deploy via K8s.

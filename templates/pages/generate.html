@@ -1,0 +1,69 @@
+{% extends "layouts/base.html" %}
+{% block title %}Generate — {% endblock %}
+
+{% block content %}
+<h1>Generate Playlist</h1>
+<p class="text-muted" style="margin-bottom: 1.5rem;">Configure your parameters and preview before pushing to Spotify.</p>
+
+{% if not targets %}
+<div class="alert alert-warning">
+    No target playlists configured. <a href="/targets">Add a target</a> first.
+</div>
+{% else %}
+<div class="card">
+    <form hx-post="/api/generate/preview"
+          hx-target="#generation-result"
+          hx-swap="innerHTML"
+          hx-indicator="#preview-spinner">
+
+        <div class="form-group">
+            <label for="target-select">Target playlist</label>
+            <select id="target-select" name="target_id" class="form-input">
+                {% for t in targets %}
+                <option value="{{ t.id }}" {% if t.is_default %}selected{% endif %}>
+                    {{ t.playlist_name or t.spotify_playlist_id }}
+                    {% if t.is_default %}(default){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="max-tracks">Max tracks</label>
+                <input type="number" id="max-tracks" name="max_tracks" class="form-input"
+                       placeholder="No limit" min="1">
+            </div>
+            <div class="form-group">
+                <label for="max-minutes">Max minutes</label>
+                <input type="number" id="max-minutes" name="max_minutes" class="form-input"
+                       placeholder="No limit" min="1">
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="discovery-mode">Discovery mode</label>
+                <select id="discovery-mode" name="discovery_mode" class="form-input">
+                    <option value="">None</option>
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed count</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="discovery-value">Discovery value</label>
+                <input type="number" id="discovery-value" name="discovery_value" class="form-input"
+                       placeholder="e.g. 20 (% or count)" min="1" step="1">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Preview
+            <span class="htmx-indicator spinner" id="preview-spinner"></span>
+        </button>
+    </form>
+</div>
+
+<div id="generation-result"></div>
+{% endif %}
+{% endblock %}

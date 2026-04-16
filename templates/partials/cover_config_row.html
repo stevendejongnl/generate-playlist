@@ -1,0 +1,23 @@
+<div class="list-item" id="config-{{ config.id }}">
+    <div class="list-item-info">
+        <div class="list-item-title">
+            {{ config.name }}
+            {% if config.is_default %}<span class="badge badge-primary">Default</span>{% endif %}
+        </div>
+        <div class="list-item-subtitle">
+            "{{ config.text }}" &middot;
+            <span style="display:inline-block;width:12px;height:12px;background:{{ config.bg_color }};border-radius:2px;vertical-align:middle;"></span>
+            <span style="display:inline-block;width:12px;height:12px;background:{{ config.text_color }};border-radius:2px;vertical-align:middle;"></span>
+            &middot; {{ config.font_size }}pt
+        </div>
+    </div>
+    <div class="list-item-actions">
+        <button class="btn btn-danger btn-ghost"
+                hx-delete="/api/cover-image/configs/{{ config.id }}"
+                hx-target="#config-{{ config.id }}"
+                hx-swap="outerHTML"
+                data-confirm="Delete this preset?">
+            &times;
+        </button>
+    </div>
+</div>

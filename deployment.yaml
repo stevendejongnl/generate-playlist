@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: generate-playlist
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: generate-playlist-secret
+  namespace: generate-playlist
+type: Opaque
+stringData:
+  SPOTIFY_CLIENT_ID: "<your-spotify-client-id>"
+  SPOTIFY_CLIENT_SECRET: "<your-spotify-client-secret>"
+  SPOTIFY_REDIRECT_URI: "https://spotify.madebysteven.nl/callback"
+  SECRET_KEY: "<generate-with-python-secrets>"
+  ENCRYPTION_KEY: "<generate-with-fernet>"
+  DATABASE_URL: "sqlite+aiosqlite:///./data/playlist_generator.db"
+  OPENAI_API_KEY: "<optional-openai-api-key>"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: playlist-data
+  namespace: generate-playlist
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generate-playlist
+  namespace: generate-playlist
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: generate-playlist
+  template:
+    metadata:
+      labels:
+        app: generate-playlist
+    spec:
+      containers:
+      - name: generate-playlist
+        image: ghcr.io/stevendejongnl/generate-playlist:latest
+        ports:
+          - containerPort: 5000
+        envFrom:
+          - secretRef:
+              name: generate-playlist-secret
+        volumeMounts:
+          - name: data
+            mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: playlist-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: generate-playlist-service
+  namespace: generate-playlist
+spec:
+  selector:
+    app: generate-playlist
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: generate-playlist-nginx
+  namespace: generate-playlist
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: spotify.madebysteven.nl
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: generate-playlist-service
+            port:
+              number: 80
