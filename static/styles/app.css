@@ -94,7 +94,7 @@ body::after {
 .app-header nav a.active { color: var(--primary); }
 
 .container {
-    max-width: 720px;
+    max-width: 960px;
     margin: 2rem auto;
     padding: 0 1.5rem;
 }
@@ -480,6 +480,7 @@ select.form-input {
     gap: 1.5rem;
     align-items: start;
 }
+.two-col > * { min-width: 0; }
 @media (max-width: 768px) {
     .two-col { grid-template-columns: 1fr; }
 }
