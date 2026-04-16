@@ -27,5 +27,8 @@ static/js/app.iife.js.map
 .idea/
 .vscode/
 
+# Playwright
+.playwright-mcp/
+
 # Generated images
 *.jpg
