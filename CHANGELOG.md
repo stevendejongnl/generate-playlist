@@ -1,3 +1,9 @@
+## [1.1.3](https://github.com/stevendejongnl/generate-playlist/compare/v1.1.2...v1.1.3) (2026-04-16)
+
+### Bug Fixes
+
+* add version cache-busting to static asset URLs ([08d3cd3](https://github.com/stevendejongnl/generate-playlist/commit/08d3cd3c7530469ac805f135439534cf790f30a5))
+
 ## [1.1.2](https://github.com/stevendejongnl/generate-playlist/compare/v1.1.1...v1.1.2) (2026-04-16)
 
 ### Bug Fixes
