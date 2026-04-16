@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.4.2...v1.5.0) (2026-04-16)
+
+### Features
+
+* skip detection based on actual play duration from Spotify history ([b55bc3f](https://github.com/stevendejongnl/generate-playlist/commit/b55bc3f95050dee6d63adb089bdbf2a908efade6))
+
 ## [1.4.2](https://github.com/stevendejongnl/generate-playlist/compare/v1.4.1...v1.4.2) (2026-04-16)
 
 ### Bug Fixes
