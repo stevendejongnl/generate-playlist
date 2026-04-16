@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.4.0...v1.4.1) (2026-04-16)
+
+### Bug Fixes
+
+* add loading states to all HTMX interactions and fix AI cover upload ([491fd0f](https://github.com/stevendejongnl/generate-playlist/commit/491fd0f013f060a80f6cadb24b044fdd399a7c67))
+
 ## [1.4.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.3.1...v1.4.0) (2026-04-16)
 
 ### Features
