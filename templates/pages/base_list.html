@@ -5,63 +5,77 @@
 <h1>Source Tracks &amp; Playlists</h1>
 <p class="text-muted" style="margin-bottom: 1.5rem;">These are the tracks and playlists that feed your generated mix.</p>
 
-<!-- Add Track -->
-<div class="card">
-    <h2>Tracks</h2>
-    <form class="form-inline"
-          hx-post="/api/base-list/tracks"
-          hx-target="#track-list"
-          hx-swap="afterbegin"
-          hx-on::after-request="if(event.detail.successful) this.reset()">
-        <div class="form-group">
-            <label for="track-input">Add track</label>
-            <input type="text" id="track-input" name="value" class="form-input"
-                   placeholder="Spotify track URL or ID" required>
+<!-- Playlists section -->
+<div class="two-col" style="margin-bottom: 2rem;">
+    <div class="card">
+        <h2>Browse Playlists</h2>
+        <div class="browse-panel"
+             hx-get="/api/spotify/my-playlists?action=add-source"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="empty-state"><span class="spinner"></span></div>
         </div>
-        <button type="submit" class="btn btn-primary">Add</button>
-    </form>
+    </div>
 
-    <div id="track-list">
-        {% for item in tracks %}
-        {% with delete_url="/api/base-list/tracks/" + item.id %}
-        {% include "partials/track_row.html" %}
-        {% endwith %}
-        {% endfor %}
-        {% if not tracks %}
-        <div class="empty-state">
-            <p>No tracks added yet.</p>
+    <div class="card">
+        <h2>Source Playlists</h2>
+        <div id="playlist-list">
+            {% for item in playlists %}
+            {% with delete_url="/api/base-list/playlists/" + item.id %}
+            {% include "partials/playlist_row.html" %}
+            {% endwith %}
+            {% endfor %}
+            {% if not playlists %}
+            <div class="empty-state">
+                <p>No source playlists yet.</p>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
 
-<!-- Add Playlist -->
-<div class="card">
-    <h2>Playlists</h2>
-    <form class="form-inline"
-          hx-post="/api/base-list/playlists"
-          hx-target="#playlist-list"
-          hx-swap="afterbegin"
-          hx-on::after-request="if(event.detail.successful) this.reset()">
-        <div class="form-group">
-            <label for="playlist-input">Add playlist</label>
-            <input type="text" id="playlist-input" name="value" class="form-input"
-                   placeholder="Spotify playlist URL or ID" required>
+<!-- Tracks section -->
+<div class="two-col">
+    <div class="card">
+        <h2>Browse Tracks</h2>
+        <div class="browse-tabs">
+            <button class="browse-tab active"
+                    hx-get="/api/spotify/my-tracks?source=liked&action=add-source"
+                    hx-target="#track-browse"
+                    hx-swap="innerHTML"
+                    onclick="document.querySelectorAll('.browse-tabs .browse-tab').forEach(b=>b.classList.remove('active')); this.classList.add('active')">
+                Liked
+            </button>
+            <button class="browse-tab"
+                    hx-get="/api/spotify/my-tracks?source=top&action=add-source"
+                    hx-target="#track-browse"
+                    hx-swap="innerHTML"
+                    onclick="document.querySelectorAll('.browse-tabs .browse-tab').forEach(b=>b.classList.remove('active')); this.classList.add('active')">
+                Top Tracks
+            </button>
         </div>
-        <button type="submit" class="btn btn-primary">Add</button>
-    </form>
+        <div class="browse-panel" id="track-browse"
+             hx-get="/api/spotify/my-tracks?source=liked&action=add-source"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="empty-state"><span class="spinner"></span></div>
+        </div>
+    </div>
 
-    <div id="playlist-list">
-        {% for item in playlists %}
-        {% with delete_url="/api/base-list/playlists/" + item.id %}
-        {% include "partials/playlist_row.html" %}
-        {% endwith %}
-        {% endfor %}
-        {% if not playlists %}
-        <div class="empty-state">
-            <p>No playlists added yet.</p>
+    <div class="card">
+        <h2>Source Tracks</h2>
+        <div id="track-list">
+            {% for item in tracks %}
+            {% with delete_url="/api/base-list/tracks/" + item.id %}
+            {% include "partials/track_row.html" %}
+            {% endwith %}
+            {% endfor %}
+            {% if not tracks %}
+            <div class="empty-state">
+                <p>No source tracks yet.</p>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

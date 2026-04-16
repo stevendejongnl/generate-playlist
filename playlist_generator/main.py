@@ -11,7 +11,7 @@ from starlette.responses import HTMLResponse
 
 from playlist_generator.config import settings
 from playlist_generator.database import engine, Base
-from playlist_generator.routers import auth, pages, base_list, blacklist, targets, generation, cover_image
+from playlist_generator.routers import auth, pages, base_list, blacklist, targets, generation, cover_image, spotify_browse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,6 +51,7 @@ blacklist.set_templates(templates)
 targets.set_templates(templates)
 generation.set_templates(templates)
 cover_image.set_templates(templates)
+spotify_browse.set_templates(templates)
 
 
 @asynccontextmanager
@@ -90,6 +91,7 @@ app.include_router(blacklist.router)
 app.include_router(targets.router)
 app.include_router(generation.router)
 app.include_router(cover_image.router)
+app.include_router(spotify_browse.router)
 app.include_router(pages.router)
 
 

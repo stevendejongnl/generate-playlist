@@ -1,0 +1,61 @@
+{% for pl in playlists %}
+<div class="browse-item">
+    {% if pl.image_url %}
+    <img src="{{ pl.image_url }}" alt="" class="browse-thumb">
+    {% else %}
+    <div class="browse-thumb browse-thumb-empty"></div>
+    {% endif %}
+    <div class="browse-info">
+        <div class="browse-title">{{ pl.name }}</div>
+        <div class="browse-subtitle">{{ pl.owner }} &middot; {{ pl.track_count }} tracks</div>
+    </div>
+    {% if action == "add-source" %}
+    <button class="btn btn-primary btn-sm"
+            hx-post="/api/base-list/playlists"
+            hx-vals='{"value": "{{ pl.id }}"}'
+            hx-target="#playlist-list"
+            hx-swap="afterbegin"
+            hx-on::after-request="if(event.detail.successful) this.textContent='Added'">
+        Add
+    </button>
+    {% elif action == "add-target" %}
+    <button class="btn btn-primary btn-sm"
+            hx-post="/api/targets"
+            hx-vals='{"value": "{{ pl.id }}"}'
+            hx-target="#target-list"
+            hx-swap="afterbegin"
+            hx-on::after-request="if(event.detail.successful) this.textContent='Added'">
+        Add
+    </button>
+    {% elif action == "add-blacklist" %}
+    <button class="btn btn-danger btn-sm"
+            hx-post="/api/blacklist/playlists"
+            hx-vals='{"value": "{{ pl.id }}"}'
+            hx-target="#blacklist-playlist-list"
+            hx-swap="afterbegin"
+            hx-on::after-request="if(event.detail.successful) this.textContent='Blocked'">
+        Block
+    </button>
+    {% elif action == "browse-tracks" %}
+    <button class="btn btn-secondary btn-sm"
+            hx-get="/api/spotify/playlist-tracks/{{ pl.id }}?action=add-blacklist"
+            hx-target="#browse-panel"
+            hx-swap="innerHTML">
+        Browse
+    </button>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% if not playlists %}
+<div class="empty-state"><p>No playlists found.</p></div>
+{% endif %}
+
+{% if has_more %}
+<button class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 0.5rem;"
+        hx-get="/api/spotify/my-playlists?action={{ action }}&offset={{ offset + limit }}&limit={{ limit }}"
+        hx-target="this"
+        hx-swap="outerHTML">
+    Load more...
+</button>
+{% endif %}

@@ -1,0 +1,55 @@
+{% for t in tracks %}
+<div class="browse-item">
+    {% if t.image_url %}
+    <img src="{{ t.image_url }}" alt="" class="browse-thumb">
+    {% else %}
+    <div class="browse-thumb browse-thumb-empty"></div>
+    {% endif %}
+    <div class="browse-info">
+        <div class="browse-title">{{ t.name }}</div>
+        <div class="browse-subtitle">{{ t.artist }}</div>
+    </div>
+    {% if action == "add-source" %}
+    <button class="btn btn-primary btn-sm"
+            hx-post="/api/base-list/tracks"
+            hx-vals='{"value": "{{ t.id }}"}'
+            hx-target="#track-list"
+            hx-swap="afterbegin"
+            hx-on::after-request="if(event.detail.successful) this.textContent='Added'">
+        Add
+    </button>
+    {% elif action == "add-blacklist" %}
+    <button class="btn btn-danger btn-sm"
+            hx-post="/api/blacklist/tracks"
+            hx-vals='{"value": "{{ t.id }}"}'
+            hx-target="#blacklist-track-list"
+            hx-swap="afterbegin"
+            hx-on::after-request="if(event.detail.successful) this.textContent='Blocked'">
+        Block
+    </button>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% if not tracks %}
+<div class="empty-state"><p>No tracks found.</p></div>
+{% endif %}
+
+{% if has_more %}
+{% if source.startswith('playlist:') %}
+{% set pl_id = source.split(':')[1] %}
+<button class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 0.5rem;"
+        hx-get="/api/spotify/playlist-tracks/{{ pl_id }}?action={{ action }}&offset={{ offset + limit }}&limit={{ limit }}"
+        hx-target="this"
+        hx-swap="outerHTML">
+    Load more...
+</button>
+{% else %}
+<button class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 0.5rem;"
+        hx-get="/api/spotify/my-tracks?source={{ source }}&action={{ action }}&offset={{ offset + limit }}&limit={{ limit }}"
+        hx-target="this"
+        hx-swap="outerHTML">
+    Load more...
+</button>
+{% endif %}
+{% endif %}
