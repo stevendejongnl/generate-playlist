@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.3.0...v1.3.1) (2026-04-16)
+
+### Bug Fixes
+
+* equal two-column grid and wider container for browse layout ([ed9b407](https://github.com/stevendejongnl/generate-playlist/commit/ed9b4076760c28489941024f4fce9d772f6dbbeb))
+
 ## [1.3.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.2.0...v1.3.0) (2026-04-16)
 
 ### Features
