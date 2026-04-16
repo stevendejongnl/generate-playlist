@@ -35,6 +35,11 @@ kind: Deployment
 metadata:
   name: generate-playlist
   namespace: generate-playlist
+  labels:
+    keel.sh/policy: major
+    keel.sh/trigger: poll
+  annotations:
+    keel.sh/pollSchedule: "@every 5m"
 spec:
   replicas: 1
   selector:

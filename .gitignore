@@ -1,12 +1,31 @@
+# Secrets & local config
 .env
-.cache
-data
-__pycache__
-.idea/
 deployment.local.yaml
-node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
 .coverage
-*.jpg
-.flask_session/
+htmlcov/
 .pytest_cache/
+dist/
+*.egg-info/
+
+# Runtime data
+data/
+.cache/
+.flask_session/
+
+# Node
+node_modules/
+
+# Build artifacts
 static/js/app.iife.js.map
+
+# IDE
+.idea/
+.vscode/
+
+# Generated images
+*.jpg
