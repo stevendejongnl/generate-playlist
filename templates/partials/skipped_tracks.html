@@ -1,19 +1,23 @@
 {% if skipped %}
 <p class="text-muted text-small" style="margin-bottom: 0.75rem;">
-    {{ skipped | length }} tracks were in your generated playlists but not in your recent play history.
+    {{ skipped | length }} track{{ 's' if skipped | length != 1 }} detected as skipped in your recent listening.
 </p>
-{% for s in skipped %}
+{% for tid, s in skipped.items() %}
 <div class="browse-item">
     <div class="browse-info">
         <div class="browse-title">
             {{ s.name }}
-            {% if s.skip_count > 1 %}<span class="badge badge-accent">{{ s.skip_count }}x skipped</span>{% endif %}
+            <span class="badge badge-accent">{{ s.skip_count }}x skipped</span>
         </div>
-        <div class="browse-subtitle">{{ s.artist }} &middot; Generated {{ s.last_generated_at }}</div>
+        <div class="browse-subtitle">
+            {{ s.artist }} &middot;
+            Avg {{ (s.avg_play_pct * 100) | int }}% played
+            {% if s.play_count > 1 %} &middot; {{ s.play_count }} plays{% endif %}
+        </div>
     </div>
     <button class="btn btn-danger btn-sm"
             hx-post="/api/blacklist/tracks"
-            hx-vals='{"value": "{{ s.spotify_id }}"}'
+            hx-vals='{"value": "{{ tid }}"}'
             hx-target="#blacklist-count"
             hx-swap="innerHTML"
             hx-on::after-request="if(event.detail.successful) this.textContent='Blocked'">
@@ -24,6 +28,6 @@
 {% else %}
 <div class="empty-state">
     <p>No skipped tracks detected.</p>
-    <p class="text-small">Generate a playlist, listen to it, then come back here to see what you skipped.</p>
+    <p class="text-small">This analyzes the time gap between your recently played tracks to detect skips.</p>
 </div>
 {% endif %}

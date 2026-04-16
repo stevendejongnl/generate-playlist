@@ -1,16 +1,26 @@
 {% if played %}
 {% for t in played %}
-<div class="browse-item">
+<div class="browse-item" {% if t.was_skipped %}style="border-left: 2px solid var(--danger);"{% endif %}>
     <div class="browse-info">
-        <div class="browse-title">{{ t.name }}</div>
+        <div class="browse-title">
+            {{ t.name }}
+            {% if t.was_skipped %}<span class="badge" style="background:rgba(231,76,60,0.15);color:var(--danger);">Skipped</span>{% endif %}
+        </div>
         <div class="browse-subtitle">
             {{ t.artist }} &middot;
             <span class="text-dim">{{ t.played_at[:16] | replace('T', ' ') }}</span>
+            {% if t.actual_play_ms is not none %}
+            &middot;
+            Played {{ (t.actual_play_ms // 1000) }}s / {{ (t.duration_ms // 1000) }}s
+            ({{ (t.play_percentage * 100) | int }}%)
+            {% endif %}
         </div>
     </div>
-    <span class="text-muted text-small">
-        {{ (t.duration_ms // 60000) }}:{{ "%02d" | format((t.duration_ms % 60000) // 1000) }}
-    </span>
+    {% if t.actual_play_ms is not none %}
+    <div style="width: 50px; height: 6px; background: var(--glass-border); border-radius: 3px; flex-shrink: 0;">
+        <div style="width: {{ [t.play_percentage * 100, 100] | min }}%; height: 100%; background: {{ 'var(--danger)' if t.was_skipped else 'var(--primary)' }}; border-radius: 3px;"></div>
+    </div>
+    {% endif %}
 </div>
 {% endfor %}
 {% else %}
