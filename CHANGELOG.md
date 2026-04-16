@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.6.0...v1.6.1) (2026-04-16)
+
+### Bug Fixes
+
+* play history pagination — use oldest played_at as cursor for next page ([41c50d0](https://github.com/stevendejongnl/generate-playlist/commit/41c50d02e9a336982482c7a3e44d901fd3f256d9))
+
 ## [1.6.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.5.0...v1.6.0) (2026-04-16)
 
 ### Features
