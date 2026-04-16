@@ -76,24 +76,32 @@ async def sync_play_history(
     """
     new_count = 0
     before_ms: int | None = None
+    consecutive_empty = 0
+    pages_fetched = 0
 
     for page in range(pages):
         try:
             if before_ms:
+                logger.info("Page %d: fetching plays before %d", page, before_ms)
                 results = await asyncio.to_thread(
                     spotify.current_user_recently_played, limit=50, before=before_ms
                 )
             else:
+                logger.info("Page %d: fetching latest plays", page)
                 results = await asyncio.to_thread(
                     spotify.current_user_recently_played, limit=50
                 )
-        except Exception:
-            logger.warning("Failed to fetch play history page %d", page)
+        except Exception as e:
+            logger.warning("Failed to fetch play history page %d: %s", page, e)
             break
 
         items = results.get("items", [])
+        logger.info("Page %d: got %d items", page, len(items))
+
         if not items:
             break
+
+        pages_fetched += 1
 
         # Cache track metadata from this response
         track_data = [item["track"] for item in items if item.get("track")]
@@ -116,6 +124,9 @@ async def sync_play_history(
 
         if not raw:
             break
+
+        # Log the time range of this batch (items come newest-first from Spotify)
+        logger.info("Page %d: range %s .. %s", page, raw[-1]["played_at"], raw[0]["played_at"])
 
         # Reverse to chronological for duration calculation
         raw.reverse()
@@ -146,22 +157,31 @@ async def sync_play_history(
 
         new_count += page_new
         await db.commit()
+        logger.info("Page %d: %d new plays stored", page, page_new)
 
-        # Use the oldest played_at from this batch as the cursor for the next page
-        # raw is chronological (oldest first), so raw[0] is the oldest
+        # Calculate before_ms for next page from the oldest item
+        # raw[0] is the oldest after reversing
         oldest_played_at = raw[0]["played_at"]
         try:
             oldest_dt = datetime.fromisoformat(oldest_played_at.replace("Z", "+00:00"))
             before_ms = int(oldest_dt.timestamp() * 1000)
         except (ValueError, TypeError):
+            logger.warning("Could not parse oldest played_at: %s", oldest_played_at)
             break
 
-        # If this page had no new entries and we're past page 1, we've caught up
-        if page_new == 0 and page > 0:
-            logger.info("No new plays on page %d, stopping", page)
-            break
+        # Stop if we get 3 consecutive pages with no new data
+        if page_new == 0:
+            consecutive_empty += 1
+            if consecutive_empty >= 3:
+                logger.info("3 consecutive empty pages, stopping")
+                break
+        else:
+            consecutive_empty = 0
 
-    logger.info("Synced %d new plays for user %s across %d pages", new_count, user_id, page + 1)
+    logger.info(
+        "Sync complete: %d new plays for user %s across %d pages fetched",
+        new_count, user_id, pages_fetched,
+    )
     return new_count
 
 
