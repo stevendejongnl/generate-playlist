@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.1.0...v1.1.1) (2026-04-16)
+
+### Bug Fixes
+
+* landing page layout and button styling ([088671a](https://github.com/stevendejongnl/generate-playlist/commit/088671ab1ba61be984e822c6bd8ff48003d856a6))
+
 ## [1.1.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.0.0...v1.1.0) (2026-04-16)
 
 ### Features
