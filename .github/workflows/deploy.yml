@@ -38,3 +38,20 @@ jobs:
           tags: |
             ghcr.io/${{ steps.repo-name.outputs.lowercase }}:latest
             ghcr.io/${{ steps.repo-name.outputs.lowercase }}:${{ github.event.client_payload.version }}
+
+  deploy:
+    name: Deploy to k8s
+    needs: build-and-deploy
+    runs-on: [self-hosted, k8s]
+    steps:
+      - name: Restart deployment
+        run: |
+          RESTART_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          curl -sf -X PATCH \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/strategic-merge-patch+json" \
+            --cacert "$CA" \
+            "https://kubernetes.default.svc/apis/apps/v1/namespaces/generate-playlist/deployments/generate-playlist" \
+            -d "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"kubectl.kubernetes.io/restartedAt\":\"$RESTART_AT\"}}}}}"
