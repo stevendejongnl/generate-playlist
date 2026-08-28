@@ -89,6 +89,17 @@ body::after {
     white-space: nowrap;
     flex-shrink: 0;
 }
+.nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-left: auto;
+}
 .app-header nav {
     display: flex;
     gap: 1.5rem;
@@ -592,5 +603,27 @@ select.form-input {
     .landing-hero h1 { font-size: 1.8rem; }
     .dash-grid { grid-template-columns: 1fr; }
     .app-header { padding: 0 1rem; }
-    .app-header nav { gap: 1rem; }
+
+    .nav-toggle { display: block; }
+
+    .app-header nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        margin-left: 0;
+        overflow-x: visible;
+        background: var(--surface-solid);
+        border-bottom: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-lg);
+    }
+    .app-header nav.nav-open { display: flex; }
+    .app-header nav a {
+        padding: 0.9rem 1.25rem;
+        border-top: 1px solid var(--glass-border);
+    }
 }

@@ -15,6 +15,7 @@
     <header class="app-header">
         <a href="/" class="logo">Playlist Generator</a>
         {% if user %}
+        <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
         <nav>
             <a href="/base-list" {% if request.url.path == '/base-list' %}class="active"{% endif %}>Sources</a>
             <a href="/blacklist" {% if request.url.path == '/blacklist' %}class="active"{% endif %}>Blacklist</a>
