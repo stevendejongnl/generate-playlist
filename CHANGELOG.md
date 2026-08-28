@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.6.3...v1.7.0) (2026-08-28)
+
+### Features
+
+* add installable PWA support (manifest + service worker) ([56b13d0](https://github.com/stevendejongnl/generate-playlist/commit/56b13d00356a0905071ff4b9e82e87817aa5e076))
+
 ## [1.6.3](https://github.com/stevendejongnl/generate-playlist/compare/v1.6.2...v1.6.3) (2026-04-16)
 
 ### Bug Fixes

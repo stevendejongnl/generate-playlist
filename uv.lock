@@ -296,7 +296,7 @@ wheels = [
 
 [[package]]
 name = "generate-playlist"
-version = "1.6.3"
+version = "1.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiosqlite" },
