@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.7.0...v1.7.1) (2026-08-28)
+
+### Bug Fixes
+
+* mobile layout overflow and unresponsive two-column grids ([ed2471c](https://github.com/stevendejongnl/generate-playlist/commit/ed2471cfad35eb3b8abab4d6d5fb821e8934a2d6))
+
 ## [1.7.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.6.3...v1.7.0) (2026-08-28)
 
 ### Features
