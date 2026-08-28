@@ -1,3 +1,9 @@
+## [1.7.2](https://github.com/stevendejongnl/generate-playlist/compare/v1.7.1...v1.7.2) (2026-08-28)
+
+### Bug Fixes
+
+* push exactly what was previewed, add History to nav ([e587373](https://github.com/stevendejongnl/generate-playlist/commit/e587373f8fbc8548c3882810ba10a40a0e5e1ecf))
+
 ## [1.7.1](https://github.com/stevendejongnl/generate-playlist/compare/v1.7.0...v1.7.1) (2026-08-28)
 
 ### Bug Fixes
