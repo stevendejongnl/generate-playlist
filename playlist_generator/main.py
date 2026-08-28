@@ -11,7 +11,7 @@ from starlette.responses import HTMLResponse
 
 from playlist_generator.config import settings
 from playlist_generator.database import engine, Base
-from playlist_generator.routers import auth, pages, base_list, blacklist, targets, generation, cover_image, spotify_browse, skips
+from playlist_generator.routers import auth, pages, base_list, blacklist, targets, generation, cover_image, spotify_browse, skips, pwa
 
 logging.basicConfig(
     level=logging.INFO,
@@ -74,6 +74,14 @@ async def auth_redirect(request: Request, exc: Exception) -> HTMLResponse:
     from starlette.responses import RedirectResponse
 
     return RedirectResponse(url="/", status_code=303)
+@app.middleware("http")
+async def no_cache_html(request: Request, call_next):
+    response = await call_next(request)
+    if response.headers.get("content-type", "").startswith("text/html"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SECRET_KEY,
@@ -86,6 +94,7 @@ app.mount(
     name="static",
 )
 
+app.include_router(pwa.router)
 app.include_router(auth.router)
 app.include_router(base_list.router)
 app.include_router(blacklist.router)

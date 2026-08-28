@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}Playlist Generator</title>
     <link rel="stylesheet" href="/static/styles/app.css?v={{ app_version }}">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/static/icons/favicon.png">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+    <meta name="theme-color" content="#050505">
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -32,6 +36,13 @@
     <footer>&copy; 2025 Playlist Generator</footer>
 
     <script src="/static/js/app.iife.js?v={{ app_version }}"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js");
+        });
+      }
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
