@@ -1,13 +1,15 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from playlist_generator.models.base_list import BaseTrack, BasePlaylist
 from playlist_generator.models.blacklist import BlacklistTrack, BlacklistPlaylist
+from playlist_generator.models.history import GenerationHistory, GenerationHistoryTrack
 from playlist_generator.models.user import User
 from playlist_generator.services import generation as gen
-from playlist_generator.services.generation import TrackInfo, _apply_limits
+from playlist_generator.services.generation import GenerationResult, TrackInfo, _apply_limits
 
 
 # ── Unit tests for _apply_limits ─────────────────────
@@ -250,3 +252,78 @@ async def test_preview_empty_base_list(db_session: AsyncSession, sample_user: Us
 
     assert len(result.tracks) == 0
     assert result.total_duration_ms == 0
+
+
+# ── write_tracks: writes exactly what was passed in, no re-generation ────
+
+@pytest.mark.asyncio
+async def test_write_tracks_writes_exact_track_list(db_session: AsyncSession, sample_user: User):
+    """write_tracks must push the exact tracks given, not re-run generation."""
+    tracks = [
+        TrackInfo("track_a", "Song A", "Artist A", 200_000),
+        TrackInfo("track_b", "Song B", "Artist B", 180_000, is_discovery=True),
+    ]
+    result = GenerationResult(
+        tracks=tracks,
+        total_duration_ms=sum(t.duration_ms for t in tracks),
+        discovery_count=1,
+    )
+    mock_spotify = MagicMock()
+
+    with patch.object(gen, "asyncio") as mock_asyncio:
+        mock_asyncio.to_thread = AsyncMock()
+        written = await gen.write_tracks(
+            user_id=sample_user.id,
+            target_playlist_id="playlist_xyz",
+            target_playlist_name="My Mix",
+            spotify=mock_spotify,
+            db=db_session,
+            result=result,
+            max_tracks=10,
+            discovery_mode="fixed",
+            discovery_value=1,
+        )
+
+    assert written is result
+    calls = mock_asyncio.to_thread.call_args_list
+    assert calls[0].args == (mock_spotify.playlist_replace_items, "playlist_xyz", [])
+    assert calls[1].args == (
+        mock_spotify.playlist_add_items,
+        "playlist_xyz",
+        ["spotify:track:track_a", "spotify:track:track_b"],
+    )
+
+    history = (await db_session.execute(select(GenerationHistory))).scalar_one()
+    assert history.target_playlist_id == "playlist_xyz"
+    assert history.track_count == 2
+    assert history.discovery_count == 1
+    assert history.max_tracks_param == 10
+
+    history_tracks = (
+        (await db_session.execute(select(GenerationHistoryTrack).order_by(GenerationHistoryTrack.position)))
+        .scalars()
+        .all()
+    )
+    assert [t.spotify_track_id for t in history_tracks] == ["track_a", "track_b"]
+    assert history_tracks[1].is_discovery == 1
+
+
+@pytest.mark.asyncio
+async def test_write_tracks_empty_list_does_not_touch_spotify(db_session: AsyncSession, sample_user: User):
+    """An empty track list should not clear the playlist or write history."""
+    result = GenerationResult(tracks=[], total_duration_ms=0, discovery_count=0)
+    mock_spotify = MagicMock()
+
+    with patch.object(gen, "asyncio") as mock_asyncio:
+        mock_asyncio.to_thread = AsyncMock()
+        await gen.write_tracks(
+            user_id=sample_user.id,
+            target_playlist_id="playlist_xyz",
+            target_playlist_name="My Mix",
+            spotify=mock_spotify,
+            db=db_session,
+            result=result,
+        )
+        mock_asyncio.to_thread.assert_not_called()
+
+    assert (await db_session.execute(select(GenerationHistory))).first() is None

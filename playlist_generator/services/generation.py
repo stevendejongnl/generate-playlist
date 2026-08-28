@@ -244,26 +244,21 @@ async def preview(
     )
 
 
-async def execute(
+async def write_tracks(
     user_id: str,
     target_playlist_id: str,
     target_playlist_name: str | None,
     spotify: spotipy.Spotify,
     db: AsyncSession,
+    result: GenerationResult,
     max_tracks: int | None = None,
     max_minutes: int | None = None,
     discovery_mode: str | None = None,
     discovery_value: float | None = None,
 ) -> GenerationResult:
-    """Run the full pipeline and write to the Spotify playlist."""
-    result = await preview(
-        user_id, spotify, db,
-        max_tracks=max_tracks,
-        max_minutes=max_minutes,
-        discovery_mode=discovery_mode,
-        discovery_value=discovery_value,
-    )
-
+    """Write an already-decided track list (e.g. from a preview) to the target
+    Spotify playlist and record it in history. Does not re-run generation, so
+    the tracks written are exactly the tracks the caller previewed."""
     if not result.tracks:
         return result
 

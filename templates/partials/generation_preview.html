@@ -11,6 +11,11 @@
               hx-target="#generation-result"
               hx-swap="innerHTML">
             <input type="hidden" name="target_id" value="{{ target_id }}">
+            <input type="hidden" name="tracks_json" value='{{ tracks_json }}'>
+            <input type="hidden" name="max_tracks" value="{{ max_tracks or '' }}">
+            <input type="hidden" name="max_minutes" value="{{ max_minutes or '' }}">
+            <input type="hidden" name="discovery_mode" value="{{ discovery_mode or '' }}">
+            <input type="hidden" name="discovery_value" value="{{ discovery_value or '' }}">
             <button type="submit" class="btn btn-primary btn-lg"
                     data-confirm="Write {{ track_count }} tracks to {{ target_name }}?">
                 Push to Spotify

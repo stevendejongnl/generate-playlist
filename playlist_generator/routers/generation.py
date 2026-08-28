@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated
 
@@ -13,6 +14,7 @@ from playlist_generator.dependencies import get_current_user, get_spotify
 from playlist_generator.models.target import TargetPlaylist
 from playlist_generator.models.user import User
 from playlist_generator.services import generation as gen_service
+from playlist_generator.services.generation import GenerationResult, TrackInfo
 
 logger = logging.getLogger(__name__)
 
@@ -77,16 +79,31 @@ async def preview(
 
     total_minutes = result.total_duration_ms // 60_000
     total_seconds = (result.total_duration_ms % 60_000) // 1000
+    tracks_json = json.dumps([
+        {
+            "spotify_id": t.spotify_id,
+            "name": t.name,
+            "artist": t.artist,
+            "duration_ms": t.duration_ms,
+            "is_discovery": t.is_discovery,
+        }
+        for t in result.tracks
+    ])
 
     return templates.TemplateResponse(
         request, "partials/generation_preview.html",
         {
             "tracks": result.tracks,
+            "tracks_json": tracks_json,
             "track_count": len(result.tracks),
             "discovery_count": result.discovery_count,
             "total_duration": f"{total_minutes}m {total_seconds}s",
             "target_id": target_id,
             "target_name": target.playlist_name or target.spotify_playlist_id,
+            "max_tracks": max_tracks,
+            "max_minutes": max_minutes,
+            "discovery_mode": discovery_mode,
+            "discovery_value": discovery_value,
         },
     )
 
@@ -95,6 +112,7 @@ async def preview(
 async def execute(
     request: Request,
     target_id: Annotated[str, Form()],
+    tracks_json: Annotated[str, Form()],
     user: Annotated[User, Depends(get_current_user)],
     spotify: Annotated[spotipy.Spotify, Depends(get_spotify)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -109,12 +127,22 @@ async def execute(
     if not target or target.user_id != user.id:
         return HTMLResponse('<div class="alert alert-danger">Invalid target playlist</div>')
 
-    result = await gen_service.execute(
+    tracks = [TrackInfo(**t) for t in json.loads(tracks_json)]
+    preview_result = GenerationResult(
+        tracks=tracks,
+        total_duration_ms=sum(t.duration_ms for t in tracks),
+        discovery_count=sum(1 for t in tracks if t.is_discovery),
+    )
+
+    # Writes exactly the tracks the user previewed and confirmed —
+    # does not re-run generation, so it can't drift from what was shown.
+    result = await gen_service.write_tracks(
         user_id=user.id,
         target_playlist_id=target.spotify_playlist_id,
         target_playlist_name=target.playlist_name,
         spotify=spotify,
         db=db,
+        result=preview_result,
         max_tracks=_parse_optional_int(max_tracks),
         max_minutes=_parse_optional_int(max_minutes),
         discovery_mode=discovery_mode if discovery_mode else None,
