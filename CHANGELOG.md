@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/stevendejongnl/generate-playlist/compare/v1.7.2...v1.8.0) (2026-08-28)
+
+### Features
+
+* collapse nav into a hamburger menu on mobile ([794fcf1](https://github.com/stevendejongnl/generate-playlist/commit/794fcf146b60dc2569f289a10df6f001b82236a6))
+
 ## [1.7.2](https://github.com/stevendejongnl/generate-playlist/compare/v1.7.1...v1.7.2) (2026-08-28)
 
 ### Bug Fixes
