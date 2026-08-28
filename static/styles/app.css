@@ -26,6 +26,10 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+html, body {
+    overflow-x: hidden;
+}
+
 body {
     background: var(--background);
     color: var(--text);
@@ -82,12 +86,26 @@ body::after {
     font-weight: 700;
     font-size: 1.1rem;
     text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
-.app-header nav { display: flex; gap: 1.5rem; align-items: center; }
+.app-header nav {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-left: 1.5rem;
+    min-width: 0;
+}
+.app-header nav::-webkit-scrollbar { display: none; }
 .app-header nav a {
     color: var(--text-muted);
     text-decoration: none;
     font-size: 0.9rem;
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: color var(--transition);
 }
 .app-header nav a:hover { color: var(--text); }
@@ -144,6 +162,7 @@ h3 { font-size: 1rem; color: var(--text-muted); margin: 0 0 0.75rem; font-weight
     transition: all var(--transition);
     text-decoration: none;
     line-height: 1.4;
+    white-space: nowrap;
 }
 .btn-primary {
     background: var(--primary);
